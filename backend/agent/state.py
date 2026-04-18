@@ -30,3 +30,22 @@ class InvestigationState(TypedDict):
     sanctions_detail: str
 
     final_payload: Optional[dict]
+    _raw_data: Optional[dict]
+    _active_officers: Optional[list]
+    _ubo_type: Optional[str]
+
+    # Extended risk signals — MUST be registered or LangGraph drops them silently
+    _is_dormant: Optional[bool]
+    _accounts_overdue: Optional[bool]
+    _has_insolvency: Optional[bool]
+    _company_status: Optional[str]
+    _charge_count: Optional[int]
+    _resigned_officer_count: Optional[int]
+
+    # RAG filing signals — populated by multi-PDF pipeline
+    _filing_risk_signals: Optional[dict]
+    _filing_smurf_evidence: Optional[dict]
+    _filing_boiler_evidence: Optional[dict]
+    _filing_nominee_evidence: Optional[dict]
+    _filing_vague_sic_evidence: Optional[dict]
+    _filing_hidden_owner_evidence: Optional[dict]

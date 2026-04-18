@@ -28,8 +28,8 @@ function renderHighlighted(text) {
 function Card({ children, style }) {
   return (
     <div style={{
-      background: '#1C1814',
-      border: '1px solid #2C271F',
+      background: 'var(--white)',
+      border: '1px solid var(--border-light)',
       borderRadius: 12,
       padding: '10px 12px',
       ...style,
@@ -42,8 +42,8 @@ function Card({ children, style }) {
 function StatBox({ label, value, valueColor }) {
   return (
     <Card style={{ textAlign: 'center' }}>
-      <div style={{ color: '#625C52', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 4 }}>{label}</div>
-      <div style={{ color: valueColor || '#F0EAE0', fontSize: 14, fontWeight: 700 }}>{value ?? '—'}</div>
+      <div style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 4 }}>{label}</div>
+      <div style={{ color: valueColor || 'var(--text-dark)', fontSize: 14, fontWeight: 700 }}>{value ?? '—'}</div>
     </Card>
   )
 }
@@ -59,37 +59,37 @@ export default function EvidencePanel({ edge, nodes, onClose, stats }) {
   return (
     <div className="fade-in" style={{
       width: '100%', height: '100%',
-      background: '#151210',
-      borderLeft: '1px solid #2C271F',
+      background: 'var(--cream-2)',
+      borderLeft: '1px solid var(--border-light)',
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
     }}>
       {/* Header */}
       <div style={{
         padding: '14px 16px 12px',
-        borderBottom: '1px solid #1E1B15',
+        borderBottom: '1px solid var(--border-light)',
         flexShrink: 0,
-        background: '#1A1612',
+        background: 'var(--white)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ color: '#F0EAE0', fontSize: 13, fontWeight: 600, letterSpacing: '0.01em', marginBottom: 4 }}>
+            <div style={{ color: 'var(--text-dark)', fontSize: 13, fontWeight: 600, letterSpacing: '0.01em', marginBottom: 4 }}>
               Evidence Provenance
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{ color: '#A89E90', fontSize: 11 }}>{sourceNode?.label || edge.source}</span>
-              <span style={{ color: '#4A4238', fontSize: 11 }}>→</span>
-              <span style={{ color: '#A89E90', fontSize: 11 }}>{targetNode?.label || edge.target}</span>
+              <span style={{ color: 'var(--text-mid)', fontSize: 11 }}>{sourceNode?.label || edge.source}</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>→</span>
+              <span style={{ color: 'var(--text-mid)', fontSize: 11 }}>{targetNode?.label || edge.target}</span>
             </div>
           </div>
           <button onClick={onClose} style={{
             width: 26, height: 26, borderRadius: '50%',
-            background: '#242018', border: '1px solid #302B22',
-            color: '#A89E90', fontSize: 14, cursor: 'pointer',
+            background: 'var(--cream)', border: '1px solid var(--border-light)',
+            color: 'var(--text-muted)', fontSize: 14, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'background 0.15s, color 0.15s', fontFamily: 'inherit',
+            transition: 'all 0.15s', fontFamily: 'inherit',
           }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#2C271F'; e.currentTarget.style.color = '#F0EAE0' }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#242018'; e.currentTarget.style.color = '#A89E90' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--white)'; e.currentTarget.style.color = 'var(--text-dark)'; e.currentTarget.style.boxShadow = 'var(--shadow-sm)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'var(--cream)'; e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.boxShadow = 'none' }}
           >×</button>
         </div>
       </div>
@@ -99,9 +99,12 @@ export default function EvidencePanel({ edge, nodes, onClose, stats }) {
 
         {/* Stats grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
-          <StatBox label="Ownership" value={edge.ownership_pct != null ? `${edge.ownership_pct}%` : '—'} />
+          <StatBox 
+            label={edge.ownership_pct != null ? "Ownership" : "Role"} 
+            value={edge.ownership_pct != null ? `${edge.ownership_pct}%` : edge.label || '—'} 
+          />
           <Card style={{ textAlign: 'center' }}>
-            <div style={{ color: '#625C52', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 4 }}>Trust Level</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 4 }}>Trust Level</div>
             <div style={{
               display: 'inline-flex', alignItems: 'center',
               background: trust.bg, border: `1px solid ${trust.border}`,
@@ -112,11 +115,11 @@ export default function EvidencePanel({ edge, nodes, onClose, stats }) {
             </div>
           </Card>
           <Card style={{ gridColumn: '1/-1' }}>
-            <div style={{ color: '#625C52', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 4 }}>Source Document</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 4 }}>Source Document</div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: '#F0EAE0', fontSize: 11, fontWeight: 500, flex: 1, marginRight: 8 }}>{edge.source_doc || '—'}</span>
+              <span style={{ color: 'var(--text-dark)', fontSize: 11, fontWeight: 500, flex: 1, marginRight: 8 }}>{edge.source_doc || '—'}</span>
               {edge.source_page && (
-                <span style={{ color: '#625C52', fontSize: 10, background: '#242018', border: '1px solid #302B22', borderRadius: 6, padding: '1px 7px' }}>
+                <span style={{ color: 'var(--text-mid)', fontSize: 10, background: 'var(--cream)', border: '1px solid var(--border-light)', borderRadius: 6, padding: '1px 7px' }}>
                   p.{edge.source_page}
                 </span>
               )}
@@ -127,7 +130,7 @@ export default function EvidencePanel({ edge, nodes, onClose, stats }) {
         {/* Risk flags */}
         {nodeTags.length > 0 && (
           <div>
-            <div style={{ color: '#625C52', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 }}>Risk Flags</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 }}>Risk Flags</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
               {nodeTags.map(tag => {
                 const m = TAG_META[tag]
@@ -146,17 +149,26 @@ export default function EvidencePanel({ edge, nodes, onClose, stats }) {
 
         {/* Evidence document */}
         <div>
-          <div style={{ color: '#625C52', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 }}>
-            Source Document Proof
+          <div style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ color: 'var(--green)' }}>✓</span> Exact Data Provenance
           </div>
-          <div style={{ border: '1px solid #2C271F', borderRadius: 12, overflow: 'hidden' }}>
-            <div style={{ background: '#1A1612', padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1E1B15' }}>
-              <span style={{ color: '#A89E90', fontSize: 11, fontWeight: 500 }}>{edge.source_doc || 'Unknown'}</span>
-              {edge.source_page && <span style={{ color: '#625C52', fontSize: 10 }}>p.{edge.source_page}</span>}
+          <div style={{ border: '1px solid var(--border-light)', borderRadius: 12, overflow: 'hidden' }}>
+            <div style={{ background: 'var(--white)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 6, borderBottom: '1px solid var(--border-light)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase' }}>Source Filing</span>
+                {edge.source_page && <span style={{ color: '#C05621', fontSize: 10, fontWeight: 700, background: 'rgba(232,168,72,0.1)', padding: '2px 6px', borderRadius: 4 }}>Page {edge.source_page}</span>}
+              </div>
+              <div style={{ color: 'var(--text-dark)', fontSize: 12, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
+                📄 {edge.source_doc || 'API Sync'}
+              </div>
             </div>
-            <div style={{ padding: '12px 14px', background: '#151210' }}>
-              <p style={{ color: '#A89E90', fontSize: 12, lineHeight: 1.75, margin: 0 }}>
-                {renderHighlighted(edge.evidence_snippet)}
+            <div style={{ padding: '14px', background: 'var(--cream)' }}>
+              <div style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', marginBottom: 6 }}>Verbatim Snippet</div>
+              <p style={{ 
+                color: 'var(--text-dark)', fontSize: 12, lineHeight: 1.75, margin: 0,
+                borderLeft: '2px solid var(--border-dark)', paddingLeft: 10, fontStyle: 'italic'
+              }}>
+                "{renderHighlighted(edge.evidence_snippet)}"
               </p>
             </div>
           </div>

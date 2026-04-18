@@ -1,10 +1,10 @@
 import { getRiskColor } from '../constants/riskColors'
 
 const RISK_BANNER = {
-  CRITICAL:     { bg: 'linear-gradient(90deg, #1C0A08 0%, #151210 100%)', border: '#C53030', pulseClass: 'border-pulse-critical' },
-  HIGH_RISK:    { bg: 'linear-gradient(90deg, #160D1E 0%, #151210 100%)', border: '#7C3AED', pulseClass: 'border-pulse-high' },
-  MEDIUM_RISK:  { bg: 'linear-gradient(90deg, #1A0F06 0%, #151210 100%)', border: '#C2410C', pulseClass: '' },
-  AUTO_APPROVE: { bg: 'linear-gradient(90deg, #061412 0%, #151210 100%)', border: '#047857', pulseClass: '' },
+  CRITICAL:     { bg: 'linear-gradient(90deg, rgba(197,48,48,0.1) 0%, var(--white) 100%)', border: '#C53030', pulseClass: 'border-pulse-critical' },
+  HIGH_RISK:    { bg: 'linear-gradient(90deg, rgba(107,70,193,0.1) 0%, var(--white) 100%)', border: '#6B46C1', pulseClass: 'border-pulse-high' },
+  MEDIUM_RISK:  { bg: 'linear-gradient(90deg, rgba(214,158,46,0.1) 0%, var(--white) 100%)', border: '#D69E2E', pulseClass: '' },
+  AUTO_APPROVE: { bg: 'linear-gradient(90deg, rgba(56,161,105,0.1) 0%, var(--white) 100%)', border: '#38A169', pulseClass: '' },
 }
 
 export default function RiskScoreboard({
@@ -23,7 +23,7 @@ export default function RiskScoreboard({
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ color: color.text, fontSize: 18, fontWeight: 700, lineHeight: 1 }}>{riskScore}</span>
-        <span style={{ color: '#625C52', fontSize: 11 }}>/100</span>
+        <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>/100</span>
         <span style={{
           display: 'inline-flex', alignItems: 'center',
           background: color.bg, color: color.text,
@@ -33,16 +33,21 @@ export default function RiskScoreboard({
         }}>
           {riskLabel?.replace(/_/g, ' ')}
         </span>
+        {confidence != null && (
+          <span style={{ color: 'var(--text-muted)', fontSize: 11, marginLeft: 8 }}>
+            AI Confidence: <span style={{ color: color.text, fontWeight: 600 }}>{confidence}%</span>
+          </span>
+        )}
         {resolvedUbo && (
           <span style={{
-            color: '#625C52', fontSize: 10,
+            color: 'var(--text-muted)', fontSize: 10,
             display: 'flex', alignItems: 'center', gap: 4,
-            borderLeft: '1px solid #2C271F', paddingLeft: 10,
+            borderLeft: '1px solid var(--border-light)', paddingLeft: 10,
             maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
-            <span style={{ color: '#4A4238', flexShrink: 0 }}>UBO</span>
+            <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>UBO</span>
             <span style={{
-              color: sanctionsHit ? '#FC8181' : '#A89E90', fontWeight: 600,
+              color: sanctionsHit ? '#FC8181' : 'var(--text-mid)', fontWeight: 600,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
               {sanctionsHit && '⚠ '}{resolvedUbo}
@@ -62,7 +67,7 @@ export default function RiskScoreboard({
         flexShrink: 0,
         background: banner.bg,
         borderLeft: `3px solid ${banner.border}`,
-        borderTop: '1px solid #2C271F',
+        borderTop: '1px solid var(--border-light)',
         display: 'flex',
         alignItems: 'center',
         overflow: 'hidden',
@@ -72,35 +77,35 @@ export default function RiskScoreboard({
 
       {/* S2: Risk score + AI confidence */}
       <div style={{
-        flex: 1, padding: '0 20px', borderRight: '1px solid #2C271F',
+        flex: 1, padding: '0 20px', borderRight: '1px solid var(--border-light)',
         display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 7,
       }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ color: '#625C52', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em' }}>Risk Score</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em' }}>Risk Score</span>
           <span style={{ color: color.text, fontSize: 18, fontWeight: 700 }}>{riskScore}</span>
-          <span style={{ color: '#625C52', fontSize: 11 }}>/100</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>/100</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <span style={{ color: '#625C52', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', flexShrink: 0 }}>AI Confidence</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', flexShrink: 0 }}>AI Confidence</span>
           {confidence != null ? (
             <>
               <div style={{
                 flex: 1, maxWidth: 90, height: 3,
-                background: '#2C271F', borderRadius: 9999, overflow: 'hidden',
+                background: 'var(--border-light)', borderRadius: 9999, overflow: 'hidden',
               }}>
                 <div style={{ width: `${confidence}%`, height: '100%', background: color.text, borderRadius: 9999, transition: 'width 0.8s ease' }} />
               </div>
               <span style={{ color: color.text, fontSize: 12, fontWeight: 700 }}>{confidence}%</span>
             </>
           ) : (
-            <span style={{ color: '#4A4238', fontSize: 12 }}>—</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
           )}
         </div>
       </div>
 
       {/* S3: Flags */}
       <div style={{
-        flex: 1.2, padding: '0 16px', borderRight: '1px solid #2C271F',
+        flex: 1.2, padding: '0 16px', borderRight: '1px solid var(--border-light)',
         display: 'flex', flexDirection: 'column', gap: 5, overflow: 'hidden',
       }}>
         {fatalFlags.length > 0 && (
@@ -121,8 +126,8 @@ export default function RiskScoreboard({
           <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 5, overflowX: 'auto' }}>
             {cumulativeVectors.map(v => (
               <span key={v} style={{
-                background: '#1C1814', color: '#A89E90',
-                border: '1px solid #2C271F',
+                background: 'var(--white)', color: 'var(--text-mid)',
+                border: '1px solid var(--border-light)',
                 fontSize: 9, fontWeight: 600, letterSpacing: '0.05em',
                 padding: '2px 9px', borderRadius: 9999, whiteSpace: 'nowrap', flexShrink: 0,
               }}>
@@ -146,13 +151,18 @@ export default function RiskScoreboard({
               }}>⚠ OFAC MATCH</span>
             </div>
             {sanctionsDetail && (
-              <div style={{ color: '#625C52', fontSize: 10, lineHeight: 1.5 }}>{sanctionsDetail}</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: 10, lineHeight: 1.5 }}>{sanctionsDetail}</div>
             )}
           </div>
         )}
         {resolvedUbo && (
-          <div style={{ color: '#F0EAE0', fontSize: 11, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            UBO: <span style={{ color: '#A89E90', fontWeight: 400 }}>{resolvedUbo}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ color: 'var(--text-dark)', fontSize: 11, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              UBO: <span style={{ color: 'var(--text-mid)', fontWeight: 500 }}>{resolvedUbo}</span>
+            </div>
+            <div style={{ color: 'var(--text-muted)', fontSize: 8.5, marginTop: 2, lineHeight: 1.3 }}>
+              ℹ Calculated via highest Human PSC ownership
+            </div>
           </div>
         )}
       </div>

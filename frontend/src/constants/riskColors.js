@@ -1,10 +1,10 @@
 export const NODE_COLORS = {
-  AUTO_APPROVE: { bg: "#0F2318", border: "#5CB87A", pulse: false },
-  MEDIUM_RISK:  { bg: "#2A1E08", border: "#E8A848", pulse: false },
-  HIGH_RISK:    { bg: "#1E1535", border: "#8B7CE8", pulse: true  },
-  CRITICAL:     { bg: "#2A0E0B", border: "#E06B5A", pulse: true  },
-  OFFSHORE:     { bg: "#0A1E2E", border: "#4DB8C8", pulse: false },
-  UNVERIFIED_AI:{ bg: "#1A1729", border: "#6E6B8A", pulse: false }
+  AUTO_APPROVE: { bg: "var(--cream-2)", border: "#38A169", text: "#38A169", pulse: false },
+  MEDIUM_RISK:  { bg: "var(--cream-2)", border: "#D69E2E", text: "#D69E2E", pulse: false },
+  HIGH_RISK:    { bg: "var(--cream-2)", border: "#6B46C1", text: "#6B46C1", pulse: true  },
+  CRITICAL:     { bg: "var(--cream-2)", border: "#C53030", text: "#C53030", pulse: true  },
+  OFFSHORE:     { bg: "var(--cream-2)", border: "#3182CE", text: "#3182CE", pulse: false },
+  UNVERIFIED_AI:{ bg: "var(--cream-2)", border: "var(--text-muted)", text: "var(--text-muted)", pulse: false }
 };
 
 export const SCORE_THRESHOLDS = {

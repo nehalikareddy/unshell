@@ -53,11 +53,44 @@ Rules:
 def _slugify(name: str) -> str:
     return re.sub(r"[^a-z0-9]", "_", name.lower()).strip("_")
 
+def _slim_data(raw: dict) -> dict:
+    """Strip the raw Companies House payload down to only the fields Gemini needs.
+    This prevents hitting Gemini's output token limit on large responses."""
+    return {
+        "company_name": raw.get("company_name", ""),
+        "crn": raw.get("crn", ""),
+        "incorporation_date": raw.get("incorporation_date", ""),
+        "sic_codes": raw.get("sic_codes", []),
+        "registered_address": raw.get("registered_address", ""),
+        "pscs": [
+            {
+                "name": p.get("name", ""),
+                "type": p.get("type", ""),
+                "ownership_pct": p.get("ownership_pct", 0.0),
+                "ownership_band": p.get("ownership_band", ""),
+                "jurisdiction": p.get("jurisdiction", ""),
+                "is_offshore": p.get("is_offshore", False),
+            }
+            for p in raw.get("pscs", [])
+        ],
+        "officers": [
+            {
+                "name": o.get("name", ""),
+                "role": o.get("role", ""),
+                "is_corporate": o.get("is_corporate", False),
+                "active": o.get("resignation_date") is None,
+            }
+            for o in raw.get("officers", [])
+            if o.get("resignation_date") is None  # active officers only
+        ],
+    }
+
 def normalize_companies_house_data(raw_data: dict) -> tuple[list[dict], list[dict]]:
     primary_model = genai.GenerativeModel("gemini-2.5-flash", system_instruction=_SYSTEM)
     fallback_model = genai.GenerativeModel("gemini-2.5-flash-lite", system_instruction=_SYSTEM)
     
-    prompt = f"Normalise this Companies House data into the graph schema:\n\n{json.dumps(raw_data)}"
+    slim = _slim_data(raw_data)
+    prompt = f"Normalise this Companies House data into the graph schema:\n\n{json.dumps(slim)}"
     config = {
         "response_mime_type": "application/json",
         "response_schema": NormalizedGraph,

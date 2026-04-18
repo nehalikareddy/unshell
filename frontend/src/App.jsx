@@ -131,6 +131,7 @@ export default function App() {
         data={investigationData}
         crn={lastCrn}
         onReset={handleReset}
+        onUploadDocument={handleInvestigateDocument}
       />
     )
   }

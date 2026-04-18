@@ -1,25 +1,30 @@
 import { useState, useRef } from 'react'
 
-export default function HitlUploadZone({ pauseReason, partialGraph, riskScore, onResume, onReset }) {
+export default function HitlUploadZone({ pauseReason, partialGraph, riskScore, onResume, onReset, onClose, asModal }) {
   const [selectedFile, setSelectedFile] = useState(null)
-  const [isDragging, setIsDragging]     = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef(null)
 
-  function handleDragOver(e)  { e.preventDefault(); setIsDragging(true) }
-  function handleDragLeave()  { setIsDragging(false) }
+  function handleDragOver(e) { e.preventDefault(); setIsDragging(true) }
+  function handleDragLeave() { setIsDragging(false) }
   function handleDrop(e) {
     e.preventDefault(); setIsDragging(false)
     const file = e.dataTransfer.files[0]
     if (file && file.type === 'application/pdf') setSelectedFile(file)
   }
   function handleFileChange(e) { if (e.target.files[0]) setSelectedFile(e.target.files[0]) }
-  function formatSize(b) { return b < 1048576 ? `${(b/1024).toFixed(1)} KB` : `${(b/1048576).toFixed(1)} MB` }
+  function formatSize(b) { return b < 1048576 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1048576).toFixed(1)} MB` }
 
   return (
     <div style={{
-      minHeight: '100vh', display: 'flex', flexDirection: 'column',
+      width: asModal ? 880 : '100%',
+      minHeight: asModal ? 520 : '100vh',
+      borderRadius: asModal ? 16 : 0,
+      overflow: 'hidden',
+      display: 'flex', flexDirection: 'column',
       background: 'var(--cream)',
       fontFamily: "'Inter', system-ui, sans-serif",
+      boxShadow: asModal ? '0 24px 64px rgba(0,0,0,0.4), 0 0 0 1px rgba(232,168,72,0.2)' : 'none',
     }}>
 
       {/* ── TOP BANNER ─────────────────────────────────────────────── */}
@@ -29,7 +34,18 @@ export default function HitlUploadZone({ pauseReason, partialGraph, riskScore, o
         padding: '14px 32px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {onClose && (
+            <button onClick={onClose} style={{
+              background: 'rgba(255, 255, 255, 0.1)', border: 'none', color: '#fff',
+              width: 28, height: 28, borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 16, cursor: 'pointer',
+              transition: 'background 0.2s',
+            }} onMouseOver={e=>e.target.style.background='rgba(255, 70, 70, 0.8)'} onMouseOut={e=>e.target.style.background='rgba(255, 255, 255, 0.1)'} title="Close">
+              ✕
+            </button>
+          )}
           <div style={{
             width: 30, height: 30, borderRadius: 7,
             background: 'linear-gradient(135deg, var(--coral) 0%, var(--purple) 100%)',
@@ -42,15 +58,17 @@ export default function HitlUploadZone({ pauseReason, partialGraph, riskScore, o
             ⏸ INVESTIGATION PAUSED
           </span>
         </div>
-        {riskScore != null && (
-          <div style={{
-            background: 'var(--amber-muted)', border: '1px solid rgba(232,168,72,0.5)',
-            borderRadius: 'var(--r-pill)', padding: '4px 14px',
-            color: 'var(--amber)', fontSize: 12, fontWeight: 700,
-          }}>
-            Risk Score: {riskScore} / 100
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {riskScore != null && (
+            <div style={{
+              background: 'var(--amber-muted)', border: '1px solid rgba(232,168,72,0.5)',
+              borderRadius: 'var(--r-pill)', padding: '4px 14px',
+              color: 'var(--amber)', fontSize: 12, fontWeight: 700,
+            }}>
+              Risk Score: {riskScore} / 100
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── BODY ──────────────────────────────────────────────────────── */}
@@ -93,7 +111,7 @@ export default function HitlUploadZone({ pauseReason, partialGraph, riskScore, o
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {[
                 { label: 'Entities Found', value: partialGraph?.nodes?.length ?? 0, color: 'var(--teal)' },
-                { label: 'Links Mapped',   value: partialGraph?.edges?.length ?? 0, color: 'var(--purple)' },
+                { label: 'Links Mapped', value: partialGraph?.edges?.length ?? 0, color: 'var(--purple)' },
               ].map(s => (
                 <div key={s.label}>
                   <div style={{ fontSize: 20, fontWeight: 700, color: s.color }}>{s.value}</div>
@@ -177,8 +195,8 @@ export default function HitlUploadZone({ pauseReason, partialGraph, riskScore, o
                 fontFamily: 'inherit', transition: 'opacity 0.2s, transform 0.1s',
                 boxShadow: selectedFile ? '0 4px 20px rgba(232,168,72,0.35)' : 'none',
               }}
-              onMouseEnter={e => { if (selectedFile) { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)' }}}
-              onMouseLeave={e => { if (selectedFile) { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'none' }}}
+              onMouseEnter={e => { if (selectedFile) { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)' } }}
+              onMouseLeave={e => { if (selectedFile) { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'none' } }}
             >
               Resume Investigation →
             </button>

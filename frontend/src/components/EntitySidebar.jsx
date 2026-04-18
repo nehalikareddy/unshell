@@ -17,16 +17,16 @@ const FILTERS = [
 function StatMini({ label, value, valueColor }) {
   return (
     <div style={{
-      background: '#1A1612', border: '1px solid #2C271F', borderRadius: 10,
-      padding: '7px 10px', textAlign: 'center',
+      background: 'var(--white)', border: '1px solid var(--border-light)', borderRadius: 10,
+      padding: '7px 10px', textAlign: 'center', boxShadow: 'var(--shadow-sm)'
     }}>
-      <div style={{ color: '#625C52', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>{label}</div>
-      <div style={{ color: valueColor || '#F0EAE0', fontSize: 16, fontWeight: 700 }}>{value ?? '—'}</div>
+      <div style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>{label}</div>
+      <div style={{ color: valueColor || 'var(--text-dark)', fontSize: 16, fontWeight: 700 }}>{value ?? '—'}</div>
     </div>
   )
 }
 
-export default function EntitySidebar({ nodes = [], stats, resolvedUbo = '', activeFilters = [], onFilterChange, onEntityClick }) {
+export default function EntitySidebar({ nodes = [], stats, resolvedUbo = '', activeFilters = [], fatalFlags = [], cumulativeVectors = [], onFilterChange, onEntityClick }) {
   const sorted = [...nodes].sort((a, b) => (RISK_ORDER[a.risk_level] ?? 9) - (RISK_ORDER[b.risk_level] ?? 9))
 
   function toggle(key) {
@@ -36,13 +36,13 @@ export default function EntitySidebar({ nodes = [], stats, resolvedUbo = '', act
   return (
     <div style={{
       width: '100%', height: '100%',
-      background: '#151210',
-      borderRight: '1px solid #1E1B15',
+      background: 'var(--cream-2)',
+      borderRight: '1px solid var(--border-light)',
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
     }}>
       {/* Stats */}
       {stats && (
-        <div style={{ padding: '14px 12px 10px', borderBottom: '1px solid #1E1B15', flexShrink: 0 }}>
+        <div style={{ padding: '14px 12px 10px', borderBottom: '1px solid var(--border-light)', flexShrink: 0 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
             <StatMini label="Loops"    value={stats.loops_detected}     valueColor={stats.loops_detected    > 0 ? '#FC8181' : undefined} />
             <StatMini label="Puppets"  value={stats.puppets_detected}   valueColor={stats.puppets_detected  > 0 ? '#FDBA74' : undefined} />
@@ -53,8 +53,8 @@ export default function EntitySidebar({ nodes = [], stats, resolvedUbo = '', act
       )}
 
       {/* Filters */}
-      <div style={{ padding: '12px 12px 10px', borderBottom: '1px solid #1E1B15', flexShrink: 0 }}>
-        <div style={{ color: '#625C52', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 }}>Filter</div>
+      <div style={{ padding: '12px 12px 10px', borderBottom: '1px solid var(--border-light)', flexShrink: 0 }}>
+        <div style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 }}>Filter</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {FILTERS.map(f => {
             const active = activeFilters.includes(f.key)
@@ -64,17 +64,19 @@ export default function EntitySidebar({ nodes = [], stats, resolvedUbo = '', act
                 onClick={() => toggle(f.key)}
                 style={{
                   background: active ? f.activeBg : 'transparent',
-                  border: `1px solid ${active ? f.activeBorder : '#2C271F'}`,
-                  color: active ? f.activeText : '#625C52',
+                  border: `1px solid ${active ? f.activeBorder : 'var(--border-light)'}`,
+                  color: active ? f.activeText : 'var(--text-muted)',
                   fontSize: 11, fontWeight: 500,
                   padding: '5px 12px', borderRadius: 9999,
                   cursor: 'pointer', textAlign: 'left',
                   transition: 'all 0.18s ease',
                   fontFamily: 'inherit',
                   letterSpacing: '0.01em',
+                  background: active ? f.activeBg : 'var(--white)',
+                  boxShadow: active ? 'none' : 'var(--shadow-sm)',
                 }}
-                onMouseEnter={e => { if (!active) { e.currentTarget.style.color = '#A89E90'; e.currentTarget.style.borderColor = '#4A4238' } }}
-                onMouseLeave={e => { if (!active) { e.currentTarget.style.color = '#625C52'; e.currentTarget.style.borderColor = '#2C271F' } }}
+                onMouseEnter={e => { if (!active) { e.currentTarget.style.color = 'var(--text-dark)'; e.currentTarget.style.borderColor = 'var(--text-muted)' } }}
+                onMouseLeave={e => { if (!active) { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-light)' } }}
               >
                 {f.label}
               </button>
@@ -83,13 +85,44 @@ export default function EntitySidebar({ nodes = [], stats, resolvedUbo = '', act
         </div>
       </div>
 
+      {/* Rejection / Risk Rationale */}
+      {(fatalFlags?.length > 0 || cumulativeVectors?.length > 0) && (
+        <div style={{ padding: '12px 12px 10px', borderBottom: '1px solid var(--border-light)', flexShrink: 0, background: 'rgba(0,0,0,0.03)' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 }}>Rejection Rationale</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {fatalFlags?.map(flag => (
+              <div key={flag} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 10, color: '#FC8181', fontWeight: 600 }}>{flag.replace(/_/g, ' ')}</span>
+                <span style={{ fontSize: 10, color: '#C53030', fontWeight: 700, background: 'rgba(197,48,48,0.2)', padding: '1px 6px', borderRadius: 4 }}>FATAL</span>
+              </div>
+            ))}
+            {cumulativeVectors?.map(vec => {
+              // Known mapping for demo UI
+              const penaltyMap = { 
+                'LIQUIDATION_STATUS': '+30', 'ACCOUNTS_OVERDUE': '+20', 'CORPORATE_DIRECTOR': '+15',
+                'HIGH_OFFICER_TURNOVER': '+10', 'AGED_SHELL': '+35', 'VAGUE_SIC': '+15',
+                'BOILER_ROOM': '+40', 'SMURF_NETWORK': '+25' 
+              };
+              const score = penaltyMap[vec] || '+15';
+              return (
+                <div key={vec} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-dark)' }}>{vec.replace(/_/g, ' ')}</span>
+                  <span style={{ fontSize: 10, color: '#C05621', fontWeight: 700, background: 'rgba(221,107,32,0.15)', padding: '1px 6px', borderRadius: 4 }}>{score}</span>
+                </div>
+              )
+            }
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Entity list */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
         <div style={{
-          color: '#625C52', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em',
+          color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em',
           padding: '10px 12px 7px',
-          position: 'sticky', top: 0, background: '#151210', zIndex: 1,
-          borderBottom: '1px solid #1E1B15',
+          position: 'sticky', top: 0, background: 'var(--cream-2)', zIndex: 1,
+          borderBottom: '1px solid var(--border-light)',
         }}>
           Entities ({nodes.length})
         </div>
@@ -121,12 +154,14 @@ export default function EntitySidebar({ nodes = [], stats, resolvedUbo = '', act
                   transition: 'all 0.15s ease',
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.background = '#1C1814'
-                  e.currentTarget.style.borderColor = '#2C271F'
+                  e.currentTarget.style.background = 'var(--white)'
+                  e.currentTarget.style.borderColor = 'var(--border-light)'
+                  e.currentTarget.style.boxShadow = 'var(--shadow-sm)'
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.background = 'transparent'
                   e.currentTarget.style.borderColor = 'transparent'
+                  e.currentTarget.style.boxShadow = 'none'
                 }}
               >
                 {/* Risk dot */}
@@ -138,10 +173,10 @@ export default function EntitySidebar({ nodes = [], stats, resolvedUbo = '', act
 
                 {/* Name + jurisdiction */}
                 <div style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
-                  <div style={{ color: '#F0EAE0', fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ color: 'var(--text-dark)', fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {node.label}
                   </div>
-                  <div style={{ color: '#625C52', fontSize: 9.5, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ color: 'var(--text-muted)', fontSize: 9.5, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {node.jurisdiction}
                   </div>
                 </div>
