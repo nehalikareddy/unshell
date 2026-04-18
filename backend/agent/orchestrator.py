@@ -565,7 +565,7 @@ def fetch_filing_pdf_node(state: InvestigationState) -> InvestigationState:
 
     # ── Run targeted risk-vector queries against merged FAISS index ───────────
     if merged_faiss and combined_chunks:
-        print("\n[FILING-RAG] 🔬 Running targeted risk-vector queries...")
+        print("\n[FILING-RAG] >> Running targeted risk-vector queries...")
         filing_signals = _run_targeted_risk_queries(merged_faiss, combined_chunks)
         state["_filing_risk_signals"] = filing_signals
 
@@ -781,7 +781,7 @@ def cleanup_graph_node(state: InvestigationState) -> InvestigationState:
                     node["tags"] = []
                 if "UBO" not in node["tags"]:
                     node["tags"].append("UBO")
-                    print(f"[CLEANUP] 🏷 Tagged UBO node: {node['label']}")
+                    print(f"[CLEANUP] [TAG] Tagged UBO node: {node['label']}")
                 break
 
     state["discovered_nodes"] = nodes
@@ -795,17 +795,16 @@ def build_investigation_graph() -> StateGraph:
     workflow.add_node("fetch_uk_api",    fetch_uk_api_node)
     workflow.add_node("depth_expand",    _expand_corporate_psc_depth)
     workflow.add_node("cleanup_graph",   cleanup_graph_node)
-    workflow.add_node("fetch_filing_pdf", fetch_filing_pdf_node)
+    # fetch_filing_pdf_node skipped — rag_engine not available in this env
     workflow.add_node("calculate_risk",  calculate_risk_node)
     workflow.add_node("sanctions_check", sanctions_check_node)
     workflow.add_node("compile_output",  compile_output_node)
 
     workflow.set_entry_point("input_router")
     workflow.add_edge("input_router",    "fetch_uk_api")
-    workflow.add_edge("fetch_uk_api",    "depth_expand")       # ← Level 2 expansion
-    workflow.add_edge("depth_expand",    "cleanup_graph")      # ← First cleanup: remove floaters + tag UBO
-    workflow.add_edge("cleanup_graph",   "fetch_filing_pdf")   # ← RAG on 3 PDFs
-    workflow.add_edge("fetch_filing_pdf", "calculate_risk")    # ← Math engine
+    workflow.add_edge("fetch_uk_api",    "depth_expand")    # Level 2 expansion
+    workflow.add_edge("depth_expand",    "cleanup_graph")   # cleanup: remove floaters + tag UBO
+    workflow.add_edge("cleanup_graph",   "calculate_risk")  # skip RAG PDF step
     workflow.add_edge("calculate_risk",  "sanctions_check")
     workflow.add_edge("sanctions_check", "compile_output")
     workflow.add_edge("compile_output",  END)

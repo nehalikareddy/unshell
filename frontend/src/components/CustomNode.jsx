@@ -102,7 +102,7 @@ export default function CustomNode({ data }) {
 
   return (
     <div style={{
-      width: 230,
+      width: 270,
       borderRadius: isPerson ? 24 : 12,
       background: theme.card,
       border: `1.5px solid ${theme.border}`,
@@ -151,7 +151,7 @@ export default function CustomNode({ data }) {
           </>
         )}
         {/* Tag badges */}
-        {tags.filter(t => t !== 'UBO' && t !== 'NOMINEE_PUPPET').slice(0, 3).map(t => {
+        {tags.filter(t => t !== 'UBO' && t !== 'NOMINEE_PUPPET' && TAG_CONFIG[t]).slice(0, 3).map(t => {
           const cfg = TAG_CONFIG[t]
           return (
             <span key={t} title={cfg.title} style={{
@@ -175,10 +175,7 @@ export default function CustomNode({ data }) {
           marginBottom: 4,
           paddingLeft: 2, paddingRight: 2, marginLeft: -2, marginRight: -2,
           overflowWrap: 'break-word',
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
+          wordBreak: 'break-word',
           borderRadius: isPerson ? '0 0 24px 24px' : 0,
         }}>
           {name}

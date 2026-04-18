@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -35,8 +36,15 @@ async def health_check():
 @app.post("/investigate")
 async def investigate(request: InvestigateAPIRequest):
     try:
-        result = run_investigation(crn=request.crn)
+        # run_investigation is synchronous (LangGraph) — run in thread pool
+        # so we don't block the async event loop
+        result = await asyncio.wait_for(
+            asyncio.to_thread(run_investigation, request.crn),
+            timeout=120.0
+        )
         return result
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=504, detail={"error": "Investigation timed out after 120s", "type": "TimeoutError"})
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:

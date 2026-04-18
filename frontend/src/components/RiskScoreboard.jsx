@@ -11,7 +11,7 @@ export default function RiskScoreboard({
   riskScore, riskLabel,
   fatalFlags = [], cumulativeVectors = [],
   sanctionsHit, sanctionsDetail, resolvedUbo,
-  confidence = null,
+  confidence = null,  // kept for API compat, not rendered
   compact = false,
 }) {
   const color = getRiskColor(riskLabel)
@@ -33,11 +33,6 @@ export default function RiskScoreboard({
         }}>
           {riskLabel?.replace(/_/g, ' ')}
         </span>
-        {confidence != null && (
-          <span style={{ color: 'var(--text-muted)', fontSize: 11, marginLeft: 8 }}>
-            AI Confidence: <span style={{ color: color.text, fontWeight: 600 }}>{confidence}%</span>
-          </span>
-        )}
         {resolvedUbo && (
           <span style={{
             color: 'var(--text-muted)', fontSize: 10,
@@ -75,31 +70,15 @@ export default function RiskScoreboard({
     >
       {/* Removed S1 as requested by user. */}
 
-      {/* S2: Risk score + AI confidence */}
+      {/* S2: Risk score */}
       <div style={{
         flex: 1, padding: '0 20px', borderRight: '1px solid var(--border-light)',
-        display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 7,
+        display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4,
       }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em' }}>Risk Score</span>
-          <span style={{ color: color.text, fontSize: 18, fontWeight: 700 }}>{riskScore}</span>
+        <div style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em' }}>Risk Score</div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+          <span style={{ color: color.text, fontSize: 22, fontWeight: 700, lineHeight: 1 }}>{riskScore}</span>
           <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>/100</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <span style={{ color: 'var(--text-muted)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.09em', flexShrink: 0 }}>AI Confidence</span>
-          {confidence != null ? (
-            <>
-              <div style={{
-                flex: 1, maxWidth: 90, height: 3,
-                background: 'var(--border-light)', borderRadius: 9999, overflow: 'hidden',
-              }}>
-                <div style={{ width: `${confidence}%`, height: '100%', background: color.text, borderRadius: 9999, transition: 'width 0.8s ease' }} />
-              </div>
-              <span style={{ color: color.text, fontSize: 12, fontWeight: 700 }}>{confidence}%</span>
-            </>
-          ) : (
-            <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
-          )}
         </div>
       </div>
 

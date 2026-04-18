@@ -1,383 +1,313 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 
-const CRN_DEMOS = [
-  { label: 'Monzo', crn: '09446231', tag: 'Fintech' },
-  { label: 'IBS', crn: '01683457', tag: 'Finance' },
-  { label: 'Seabon', crn: '06026625', tag: '⚠ High Risk' },
+/* ─── Design tokens ─────────────────────────────────────────────────── */
+const C = {
+  bg:       '#EDEAE1',   // warm cream
+  surface:  '#F7F5F0',   // slightly lighter cream for cards
+  white:    '#FFFFFF',
+  border:   'rgba(0,0,0,0.08)',
+  ink:      '#0A0A0A',   // near-black
+  inkMid:   '#3A3A3A',
+  inkMuted: '#8A8A8A',
+  pill:     '#F0EDE5',   // chip background
+  pillBorder: 'rgba(0,0,0,0.10)',
+  accent:   '#0A0A0A',
+}
+
+const DEMOS = [
+  { label: 'Monzo',  crn: '09446231', tag: 'LOW RISK' },
+  { label: 'IBS',    crn: '01683457', tag: 'MEDIUM' },
+  { label: 'Seabon', crn: '06026625', tag: 'CRITICAL' },
 ]
 
-// UK CRN format: 8 digits, or 2-letter prefix + 6 digits (SC, NI, OC, SO, NC, R etc.)
 const CRN_REGEX = /^([A-Z]{2}\d{6}|\d{8})$/i
 
+/* ─── SVG icons ─────────────────────────────────────────────────────── */
+const Icon = {
+  graph: () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+    </svg>
+  ),
+  shield: () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  ),
+  lock: () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="3" ry="3"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  ),
+  arrow: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12"/>
+      <polyline points="12 5 19 12 12 19"/>
+    </svg>
+  ),
+}
+
+const FEATURES = [
+  { Icon: Icon.graph,  title: 'Deep Graph Traversal',  desc: 'Recursively maps 6+ corporate layers' },
+  { Icon: Icon.shield, title: 'Real-time Sanctions',   desc: 'OFAC SDN + EU HM Treasury live' },
+  { Icon: Icon.lock,   title: 'Zero Data Retention',   desc: 'No PII stored or transmitted' },
+]
+
+/* ─── Error Modal ────────────────────────────────────────────────────── */
 function ErrorModal({ message, onClose }) {
   if (!message) return null
-  const isRateLimit = message.toLowerCase().includes('rate limit') || message.toLowerCase().includes('quota')
-  const isNotFound = message.toLowerCase().includes('not found')
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
-        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: '#fff', borderRadius: 16, padding: '32px 36px',
-          maxWidth: 420, width: '90%', boxShadow: '0 24px 80px rgba(0,0,0,0.25)',
-          border: `2px solid ${isRateLimit ? '#ff9800' : '#e06b5a'}`,
-          textAlign: 'center',
-          animation: 'fadeInScale 0.18s ease',
-        }}
-      >
-        <div style={{ fontSize: 40, marginBottom: 12 }}>
-          {isRateLimit ? '⏳' : isNotFound ? '🔍' : '⚠️'}
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(8px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: C.white, borderRadius: 24, padding: '36px 40px',
+        maxWidth: 380, width: '90%',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.06)',
+        textAlign: 'center',
+      }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: '50%',
+          background: '#FEF2F2', margin: '0 auto 16px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 20,
+        }}>✕</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+          Investigation Failed
         </div>
-        <div style={{ fontSize: 17, fontWeight: 700, color: '#1a1a2e', marginBottom: 10 }}>
-          {isRateLimit ? 'API Rate Limit Reached' : isNotFound ? 'Company Not Found' : 'Investigation Failed'}
-        </div>
-        <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.6, marginBottom: 24 }}>
+        <div style={{ fontSize: 13, color: C.inkMuted, lineHeight: 1.65, marginBottom: 28 }}>
           {message}
         </div>
-        {isRateLimit && (
-          <div style={{
-            background: '#fff8e1', border: '1px solid #ffe082',
-            borderRadius: 8, padding: '8px 14px', fontSize: 12,
-            color: '#856404', marginBottom: 20,
-          }}>
-            💡 Tip: Use one of the demo CRNs (Monzo, IBS, Seabon) to test with cached responses.
-          </div>
-        )}
-        <button
-          onClick={onClose}
-          style={{
-            background: 'linear-gradient(135deg, #e06b5a 0%, #7c3aed 100%)',
-            color: '#fff', border: 'none', borderRadius: 8,
-            padding: '10px 28px', fontSize: 13, fontWeight: 600,
-            cursor: 'pointer', fontFamily: 'inherit',
-          }}
-        >
-          Got it
-        </button>
+        <button onClick={onClose} style={{
+          background: C.ink, color: '#fff', border: 'none',
+          borderRadius: 99, padding: '11px 32px',
+          fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+        }}>Dismiss</button>
       </div>
     </div>
   )
 }
 
-export default function DualEntryGateway({ onInvestigateAPI, onInvestigateDocument, error }) {
-  const [mode, setMode] = useState('crn')
-  const [crnValue, setCrnValue] = useState('')
-  const [selectedFile, setSelectedFile] = useState(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [modalError, setModalError] = useState(null)
-  const fileInputRef = useRef(null)
-
-  // Show backend errors in modal too
+/* ─── Main component ─────────────────────────────────────────────────── */
+export default function DualEntryGateway({ onInvestigateAPI, error }) {
+  const [crn, setCrn]           = useState('')
+  const [modalError, setMErr]   = useState(null)
+  const [focused, setFocused]   = useState(false)
   const displayError = modalError || error
 
-  function validateAndInvestigate(crn) {
-    const trimmed = crn.trim().toUpperCase()
-    if (!trimmed) return
-    if (!CRN_REGEX.test(trimmed)) {
-      setModalError(
-        `"${crn.trim()}" is not a valid UK Companies House number.\n\nA valid CRN is either:\n• 8 digits (e.g. 09446231)\n• 2-letter prefix + 6 digits (e.g. SC123456)`
-      )
+  function go(val) {
+    const t = (val ?? crn).trim().toUpperCase()
+    if (!t) return
+    if (!CRN_REGEX.test(t)) {
+      setMErr(`"${t}" is not a valid UK CRN.\n\nExpected: 8 digits (09446231) or 2-letter prefix + 6 digits (SC123456).`)
       return
     }
-    onInvestigateAPI(trimmed)
+    onInvestigateAPI(t)
   }
 
-  function handleCrnKeyDown(e) {
-    if (e.key === 'Enter') validateAndInvestigate(crnValue)
-  }
-  function handleDragOver(e) { e.preventDefault(); setIsDragging(true) }
-  function handleDragLeave() { setIsDragging(false) }
-  function handleDrop(e) {
-    e.preventDefault(); setIsDragging(false)
-    const file = e.dataTransfer.files[0]
-    if (file && file.type === 'application/pdf') setSelectedFile(file)
-  }
-  function handleFileChange(e) { if (e.target.files[0]) setSelectedFile(e.target.files[0]) }
-  function formatSize(b) { return b < 1048576 ? `${(b/1024).toFixed(1)} KB` : `${(b/1048576).toFixed(1)} MB` }
+  const canGo = crn.trim().length > 0
 
   return (
     <div style={{
-      minHeight: '100vh', display: 'flex',
-      background: 'var(--cream)',
-      fontFamily: "'Inter', system-ui, sans-serif",
+      minHeight: '100vh',
+      background: C.bg,
+      fontFamily: "-apple-system, 'SF Pro Text', 'Inter', system-ui, sans-serif",
+      display: 'flex',
+      WebkitFontSmoothing: 'antialiased',
     }}>
       <style>{`
-        @keyframes fadeInScale {
-          from { opacity: 0; transform: scale(0.93); }
-          to   { opacity: 1; transform: scale(1); }
+        @keyframes fadeUp {
+          from { opacity:0; transform:translateY(10px); }
+          to   { opacity:1; transform:translateY(0); }
         }
+        .unshell-gateway { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+        .demo-chip { transition: all 0.15s ease; cursor: pointer; }
+        .demo-chip:hover { background: ${C.ink} !important; color: #fff !important; border-color: ${C.ink} !important; }
+        .go-btn { transition: all 0.15s ease; }
+        .go-btn:not(:disabled):hover { transform: scale(1.01); box-shadow: 0 8px 32px rgba(0,0,0,0.22) !important; }
+        .go-btn:not(:disabled):active { transform: scale(0.98); }
+        .feat-row { transition: transform 0.15s ease; }
+        .feat-row:hover { transform: translateX(3px); }
       `}</style>
 
-      <ErrorModal message={displayError} onClose={() => setModalError(null)} />
+      <ErrorModal message={displayError} onClose={() => setMErr(null)} />
 
-      {/* ── LEFT PANEL — brand / info pane ─────────────────────────── */}
+      {/* ═══ LEFT ═══════════════════════════════════════════════════ */}
       <div style={{
-        width: 380, flexShrink: 0,
-        background: 'var(--dark)',
-        display: 'flex', flexDirection: 'column',
-        justifyContent: 'space-between',
-        padding: '40px 36px',
+        width: '46%', maxWidth: 520, flexShrink: 0,
+        display: 'flex', flexDirection: 'column', justifyContent: 'center',
+        alignItems: 'center',
+        padding: '72px 48px',
+        textAlign: 'center',
       }}>
+
         {/* Logo */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 10,
-              background: 'linear-gradient(135deg, var(--coral) 0%, var(--purple) 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 18, fontWeight: 800, color: '#fff',
-              boxShadow: '0 4px 16px rgba(224,107,90,0.4)',
-            }}>U</div>
-            <div>
-              <div style={{ color: 'var(--text-light)', fontSize: 16, fontWeight: 700, letterSpacing: '0.08em' }}>UNSHELL</div>
-              <div style={{ color: 'var(--text-dim)', fontSize: 10, letterSpacing: '0.12em' }}>PROJECT FUSION</div>
-            </div>
-          </div>
-
-          <h2 style={{ color: 'var(--text-light)', fontSize: 22, fontWeight: 700, lineHeight: 1.4, marginBottom: 12 }}>
-            AML &amp; KYB<br />Intelligence Graph
-          </h2>
-          <p style={{ color: 'var(--text-dim)', fontSize: 13, lineHeight: 1.7, marginBottom: 36 }}>
-            Autonomously traces corporate ownership chains, detects circular loops, and screens against global sanctions databases.
-          </p>
-
-          {/* Feature list */}
-          {[
-            { icon: '🔍', color: 'var(--teal)',   label: 'Deep Graph Traversal',   desc: 'Recursively maps 6+ layers deep' },
-            { icon: '⚡', color: 'var(--coral)',  label: 'Real-time Sanctions',    desc: 'OFAC SDN + EU HM Treasury live' },
-            { icon: '📄', color: 'var(--amber)',  label: 'Document Fusion',        desc: 'AI-extracts PDF ownership data' },
-            { icon: '🔒', color: 'var(--green)',  label: 'Zero Data Retention',    desc: 'No PII stored or transmitted' },
-          ].map(f => (
-            <div key={f.label} style={{ display: 'flex', gap: 12, marginBottom: 18 }}>
-              <div style={{
-                width: 34, height: 34, borderRadius: 8, flexShrink: 0,
-                background: f.color + '22',
-                border: `1px solid ${f.color}44`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 15,
-              }}>{f.icon}</div>
-              <div>
-                <div style={{ color: 'var(--text-light)', fontSize: 12, fontWeight: 600 }}>{f.label}</div>
-                <div style={{ color: 'var(--text-dim)', fontSize: 11, marginTop: 2 }}>{f.desc}</div>
-              </div>
-            </div>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 48, alignSelf: 'flex-start' }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: '50%',
+            background: C.white,
+            boxShadow: '0 1px 0 rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.06)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 14, fontWeight: 800, color: C.ink,
+            letterSpacing: '-0.02em',
+          }}>U</div>
+          <span style={{ fontSize: 12, fontWeight: 700, color: C.ink, letterSpacing: '0.14em' }}>
+            UNSHELL
+          </span>
         </div>
 
-        {/* Bottom badges */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {['Composite AI', 'Math-Verified', 'LangGraph'].map(b => (
-            <span key={b} style={{
-              background: 'var(--dark-3)', border: '1px solid var(--border-dark)',
-              borderRadius: 'var(--r-pill)', padding: '3px 10px',
-              fontSize: 10, color: 'var(--text-dim)', fontWeight: 500,
-            }}>{b}</span>
+        {/* Hero text */}
+        <div style={{ marginBottom: 20, textAlign: 'center' }}>
+          <h1 style={{
+            fontSize: 52, fontWeight: 800, color: C.ink,
+            lineHeight: 1.0, letterSpacing: '-0.03em', margin: 0,
+          }}>
+            AML &amp; KYB
+          </h1>
+          <h2 style={{
+            fontSize: 44, fontWeight: 300, color: C.inkMid,
+            lineHeight: 1.1, letterSpacing: '-0.02em', margin: '4px 0 0',
+          }}>
+            Intelligence Graph
+          </h2>
+        </div>
+
+        <p style={{
+          fontSize: 14, color: C.inkMuted, lineHeight: 1.75,
+          maxWidth: 320, marginBottom: 40, textAlign: 'center',
+        }}>
+          Autonomously traces corporate ownership chains, detects circular loops, and screens against global sanctions databases instantly.
+        </p>
+
+        {/* Features */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%', maxWidth: 320 }}>
+          {FEATURES.map(({ Icon: Ic, title, desc }) => (
+            <div key={title} className="feat-row" style={{
+              display: 'flex', alignItems: 'center', gap: 14,
+              padding: '14px 0',
+              borderBottom: `1px solid ${C.border}`,
+            }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 10,
+                background: C.white,
+                boxShadow: '0 1px 0 rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.04)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: C.inkMid, flexShrink: 0,
+              }}><Ic /></div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{title}</div>
+                <div style={{ fontSize: 12, color: C.inkMuted, marginTop: 1 }}>{desc}</div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* ── RIGHT PANEL — input form ────────────────────────────────── */}
+      {/* ═══ DIVIDER ════════════════════════════════════════════════ */}
+      <div style={{
+        width: 1, background: C.border, margin: '80px 0', flexShrink: 0,
+      }} />
+
+      {/* ═══ RIGHT ══════════════════════════════════════════════════ */}
       <div style={{
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '40px 48px',
+        padding: '72px 60px',
       }}>
-        <div style={{ width: '100%', maxWidth: 440 }}>
+        <div style={{ width: '100%', maxWidth: 400 }} className="unshell-gateway">
 
-          <h1 style={{ color: 'var(--text-dark)', fontSize: 24, fontWeight: 700, marginBottom: 6 }}>
+          <h2 style={{
+            fontSize: 22, fontWeight: 700, color: C.ink,
+            letterSpacing: '-0.02em', marginBottom: 8,
+          }}>
             Start Investigation
-          </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 30 }}>
-            Enter a UK company number or upload a PDF document to begin forensic analysis.
+          </h2>
+          <p style={{ fontSize: 13, color: C.inkMuted, lineHeight: 1.65, marginBottom: 32 }}>
+            Enter a UK company number to begin immediate forensic analysis.
           </p>
 
-          {/* Error shown as modal now - no inline banner */}
-
-          {/* Mode Toggle */}
+          {/* Input */}
+          <label style={{ fontSize: 11, fontWeight: 600, color: C.inkMid, letterSpacing: '0.06em', display: 'block', marginBottom: 8 }}>
+            REGISTRATION NUMBER
+          </label>
           <div style={{
-            display: 'flex', gap: 0,
-            background: 'var(--cream-2)', border: '1px solid var(--border-light)',
-            borderRadius: 'var(--r-md)', padding: 4, marginBottom: 24,
+            display: 'flex', alignItems: 'center',
+            background: C.white, border: `1.5px solid ${focused ? C.ink : C.border}`,
+            borderRadius: 16, overflow: 'hidden',
+            boxShadow: focused
+              ? '0 0 0 4px rgba(0,0,0,0.06)'
+              : '0 1px 4px rgba(0,0,0,0.05)',
+            transition: 'all 0.18s ease',
           }}>
-            {[
-              { id: 'crn',      icon: '🏢', label: 'Company Number' },
-              { id: 'document', icon: '📄', label: 'Upload PDF' },
-            ].map(tab => (
-              <button key={tab.id} id={`tab-${tab.id}`} onClick={() => setMode(tab.id)} style={{
-                flex: 1, padding: '9px 16px', borderRadius: 7, border: 'none',
-                background: mode === tab.id ? 'var(--white)' : 'transparent',
-                color: mode === tab.id ? 'var(--text-dark)' : 'var(--text-muted)',
-                fontSize: 13, fontWeight: mode === tab.id ? 600 : 400,
-                cursor: 'pointer', transition: 'all 0.2s',
-                fontFamily: 'inherit',
-                boxShadow: mode === tab.id ? 'var(--shadow-sm)' : 'none',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              }}>
-                {tab.icon} {tab.label}
-              </button>
+            <input
+              id="crn-input"
+              type="text"
+              value={crn}
+              onChange={e => setCrn(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && go()}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              placeholder="e.g. 09446231"
+              style={{
+                flex: 1, height: 50, border: 'none', outline: 'none',
+                background: 'transparent', padding: '0 18px',
+                fontSize: 15, color: C.ink, fontFamily: 'inherit',
+                letterSpacing: '0.01em',
+              }}
+            />
+          </div>
+
+          {/* Demo chips */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 11, color: C.inkMuted, fontWeight: 500 }}>Try Demo:</span>
+            {DEMOS.map(d => (
+              <button
+                key={d.crn}
+                className="demo-chip"
+                onClick={() => setCrn(d.crn)}
+                style={{
+                  background: C.white,
+                  border: `1.5px solid ${C.border}`,
+                  borderRadius: 99, padding: '6px 14px',
+                  fontSize: 12, fontWeight: 500, color: C.inkMid,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                }}
+              >{d.label}</button>
             ))}
           </div>
 
-          {/* PANEL A — CRN */}
-          {mode === 'crn' && (
-            <div className="fade-up">
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-mid)', display: 'block', marginBottom: 6 }}>
-                Companies House Registration Number
-              </label>
-              <input
-                id="crn-input" type="text" value={crnValue}
-                onChange={e => setCrnValue(e.target.value)}
-                onKeyDown={handleCrnKeyDown}
-                placeholder="e.g. 09446231"
-                style={{
-                  width: '100%', height: 46,
-                  background: 'var(--white)',
-                  border: '1.5px solid var(--border-light)',
-                  borderRadius: 'var(--r-md)', padding: '0 14px',
-                  color: 'var(--text-dark)', fontSize: 14, fontFamily: 'inherit',
-                  outline: 'none', transition: 'border-color 0.2s',
-                  boxShadow: 'var(--shadow-sm)',
-                }}
-                onFocus={e => e.target.style.borderColor = 'var(--coral)'}
-                onBlur={e => e.target.style.borderColor = 'var(--border-light)'}
-              />
+          {/* CTA */}
+          <button
+            id="btn-investigate-api"
+            className="go-btn"
+            disabled={!canGo}
+            onClick={() => go()}
+            style={{
+              width: '100%', height: 52, marginTop: 28,
+              background: canGo ? C.ink : '#D4D1C9',
+              color: canGo ? '#fff' : C.inkMuted,
+              border: 'none', borderRadius: 16,
+              fontSize: 14, fontWeight: 600,
+              cursor: canGo ? 'pointer' : 'not-allowed',
+              fontFamily: 'inherit',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              boxShadow: canGo ? '0 4px 16px rgba(0,0,0,0.16)' : 'none',
+              letterSpacing: '0.01em',
+            }}
+          >
+            Investigate
+            {canGo && <Icon.arrow />}
+          </button>
 
-              {/* Quick picks */}
-              <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)', alignSelf: 'center' }}>Try:</span>
-                {CRN_DEMOS.map(d => (
-                  <button key={d.crn} id={`demo-${d.crn}`} onClick={() => setCrnValue(d.crn)} style={{
-                    background: 'var(--white)', border: '1px solid var(--border-light)',
-                    borderRadius: 'var(--r-pill)', padding: '4px 12px',
-                    fontSize: 11, color: 'var(--text-mid)', cursor: 'pointer',
-                    fontFamily: 'inherit', transition: 'all 0.18s',
-                    display: 'flex', alignItems: 'center', gap: 4,
-                    boxShadow: 'var(--shadow-sm)',
-                  }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--coral)'; e.currentTarget.style.color = 'var(--coral)' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.color = 'var(--text-mid)' }}
-                  >
-                    {d.label}
-                    {d.tag === '⚠ High Risk' && <span style={{ color: 'var(--coral)', fontSize: 9 }}>⚠</span>}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                id="btn-investigate-api" disabled={!crnValue.trim()}
-                onClick={() => validateAndInvestigate(crnValue)}
-                style={{
-                  width: '100%', height: 48, marginTop: 20,
-                  background: crnValue.trim()
-                    ? 'linear-gradient(135deg, var(--coral) 0%, var(--purple) 100%)'
-                    : 'var(--cream-2)',
-                  color: crnValue.trim() ? '#fff' : 'var(--text-muted)',
-                  border: 'none', borderRadius: 'var(--r-md)',
-                  fontSize: 13, fontWeight: 700, letterSpacing: '0.06em',
-                  cursor: crnValue.trim() ? 'pointer' : 'not-allowed',
-                  fontFamily: 'inherit', transition: 'opacity 0.2s, transform 0.1s',
-                  boxShadow: crnValue.trim() ? '0 4px 20px rgba(224,107,90,0.35)' : 'none',
-                }}
-                onMouseEnter={e => { if (crnValue.trim()) { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)' }}}
-                onMouseLeave={e => { if (crnValue.trim()) { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'none' }}}
-              >
-                Investigate →
-              </button>
-            </div>
-          )}
-
-          {/* PANEL B — Document */}
-          {mode === 'document' && (
-            <div className="fade-up">
-              <div
-                id="document-drop-zone"
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
-                style={{
-                  width: '100%', height: 154,
-                  border: `2px dashed ${isDragging ? 'var(--coral)' : 'var(--border-light)'}`,
-                  borderRadius: 'var(--r-lg)',
-                  background: isDragging ? 'rgba(224,107,90,0.04)' : 'var(--white)',
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center',
-                  gap: 6, cursor: 'pointer', transition: 'all 0.2s',
-                  boxShadow: 'var(--shadow-sm)',
-                }}
-              >
-                <div style={{
-                  width: 44, height: 44, borderRadius: 10,
-                  background: isDragging ? 'var(--coral-muted)' : 'var(--cream)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 18,
-                }}>📄</div>
-                <span style={{ fontSize: 14, color: 'var(--text-dark)', fontWeight: 500 }}>Drop PDF here</span>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>or <span style={{ color: 'var(--coral)', fontWeight: 600 }}>click to browse</span></span>
-                <input ref={fileInputRef} type="file" accept=".pdf" style={{ display: 'none' }} onChange={handleFileChange} />
-              </div>
-
-              {selectedFile && (
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 10, marginTop: 10,
-                  background: 'var(--green-muted)', border: '1px solid rgba(92,184,122,0.4)',
-                  borderRadius: 'var(--r-md)', padding: '8px 12px',
-                }}>
-                  <span style={{ color: 'var(--green)', fontSize: 15 }}>✓</span>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-dark)' }}>{selectedFile.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatSize(selectedFile.size)}</div>
-                  </div>
-                </div>
-              )}
-
-              <button
-                id="btn-analyse-document" disabled={!selectedFile}
-                onClick={() => onInvestigateDocument(selectedFile)}
-                style={{
-                  width: '100%', height: 48, marginTop: 16,
-                  background: selectedFile
-                    ? 'linear-gradient(135deg, var(--coral) 0%, var(--purple) 100%)'
-                    : 'var(--cream-2)',
-                  color: selectedFile ? '#fff' : 'var(--text-muted)',
-                  border: 'none', borderRadius: 'var(--r-md)',
-                  fontSize: 13, fontWeight: 700, letterSpacing: '0.06em',
-                  cursor: selectedFile ? 'pointer' : 'not-allowed',
-                  fontFamily: 'inherit', transition: 'opacity 0.2s, transform 0.1s',
-                  boxShadow: selectedFile ? '0 4px 20px rgba(224,107,90,0.35)' : 'none',
-                }}
-                onMouseEnter={e => { if (selectedFile) { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)' }}}
-                onMouseLeave={e => { if (selectedFile) { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'none' }}}
-              >
-                Analyse Document →
-              </button>
-            </div>
-          )}
-
-          {/* Stats row */}
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 12, marginTop: 36,
-          }}>
-            {[
-              { value: '99.2%',  label: 'Accuracy', color: 'var(--green)' },
-              { value: '<3s',    label: 'Avg. Time', color: 'var(--teal)' },
-              { value: '180+',   label: 'Jurisdictions', color: 'var(--amber)' },
-            ].map(s => (
-              <div key={s.label} style={{
-                background: 'var(--white)', border: '1px solid var(--border-light)',
-                borderRadius: 'var(--r-md)', padding: '12px',
-                textAlign: 'center', boxShadow: 'var(--shadow-sm)',
-              }}>
-                <div style={{ fontSize: 18, fontWeight: 700, color: s.color }}>{s.value}</div>
-                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2, fontWeight: 500 }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
+          {/* Footer note */}
+          <p style={{ fontSize: 11, color: C.inkMuted, textAlign: 'center', marginTop: 20, lineHeight: 1.6 }}>
+            UK Companies House · Live OFAC Screening · NetworkX Analysis
+          </p>
         </div>
       </div>
     </div>
