@@ -37,53 +37,80 @@ Financial criminals don't walk through the front door. They hide behind **layers
 
 ### Full System Architecture
 
-A high-level overview of every component and how they communicate.
-
 ```mermaid
-flowchart TB
-    subgraph Browser["🖥️  Browser  (React 18 + Vite · port 5173)"]
-        UI["DualEntryGateway\nCRN Input Form"]
-        LS["LoadingScreen\nLive pipeline progress"]
-        IV["InvestigationView\nReact Flow ownership graph"]
-        UI -->|"user submits CRN"| LS
-        LS -->|"result ready"| IV
+flowchart TD
+    USER(["👤 Compliance Officer"]) -->|"CRN"| FETCH
+
+    FETCH["🏛️ fetch_uk_api
+    Companies House API
+    Officers · PSC · SIC · Filing PDFs"]
+
+    FETCH -->|"PDF Links"| RAG
+
+    subgraph RAG ["🧠 Hyper-RAG Pipeline"]
+        direction LR
+        R1["📥 R1 · PyMuPDF
+        Extract text + page ref"] -->
+        R2["🔢 R2 · FAISS Index
+        400-char chunks + embeddings"] -->
+        R3["🤖 R3 · NVIDIA Mistral
+        Semantic JSON extraction"] -->
+        R4["✅ R4 · RapidFuzz Firewall
+        Cross-verify · Drop hallucinations"]
     end
 
-    subgraph MCP["🔐  MCP Credential Broker  (FastMCP · port 8002)"]
-        MCPS["mcp/server.py\nZero-leakage API key proxy"]
-    end
+    RAG --> NX
 
-    subgraph API["⚙️  FastAPI Backend  (Uvicorn · port 8001)"]
-        EP["POST /investigate"]
-        EP --> LG
-        subgraph LG["LangGraph Pipeline"]
-            N1["input_router"] --> N2["fetch_uk_api"]
-            N2 --> N3["depth_expand"]
-            N3 --> N4["cleanup_graph"]
-            N4 --> N5["calculate_risk"]
-            N5 --> N6["sanctions_check"]
-            N6 --> N7["compile_output"]
-        end
-    end
+    NX["📐 NetworkX Math Engine
+    calculate_risk_node"]
 
-    subgraph Data["🗄️  Data Layer"]
-        CH["UK Companies House\nREST API (live)"]
-        OFAC["OFAC SDN\nSQLite (local)"]
-        NX["NetworkX\nIn-memory graph"]
-    end
+    NX --> CHECKS{"Risk Vectors"}
 
-    Browser -->|"HTTP POST"| EP
-    MCP -->|"injects API keys"| N2
-    N2 -->|"fetch company data"| CH
-    N5 -->|"cycle detection\ndirector density"| NX
-    N6 -->|"fuzzy name match"| OFAC
-    N7 -->|"JSON graph + risk score"| Browser
+    CHECKS -->|"+15  Aged Shell"| SCORE
+    CHECKS -->|"+15  Vague SIC"| SCORE
+    CHECKS -->|"+25  Smurf Network"| SCORE
+    CHECKS -->|"FATAL  Circular Loop"| SCORE
+    CHECKS -->|"FATAL  Nominee Puppet"| SCORE
 
-    style Browser fill:#f0ede5,stroke:#ccc,color:#111
-    style API fill:#1a1a2e,stroke:none,color:#a5b4fc
-    style MCP fill:#2d1b69,stroke:none,color:#c4b5fd
-    style Data fill:#083344,stroke:none,color:#7dd3fc
-    style LG fill:#0f172a,stroke:#334155,color:#94a3b8
+    SCORE["🎯 Risk Score  0–100"]
+
+    SCORE --> OR{"Offshore Dead-End?"}
+
+    OR -->|"Yes — no UBO found"| HITL["⏸️ HITL Pause
+    Freeze state · Amber screen
+    Upload offshore PDF → resume"]
+    HITL -.->|"PDF uploaded"| RAG
+
+    OR -->|"No"| SC["🔍 sanctions_check
+    RapidFuzz on OFAC SDN SQLite"]
+
+    SC --> T{"Score Threshold"}
+
+    T -->|"0–64"| R2V["🟡 Human Review"]
+    T -->|"65–94"| R3V["🔴 Auto Reject"]
+    T -->|"95–100"| R4V["💀 SAR Filing"]
+
+    R2V & R3V & R4V --> UI["🖥️ React Flow UI
+    Ownership Graph · Risk Scoreboard · Evidence Panel"]
+
+    style USER   fill:#1A237E,color:#fff,stroke:#5C6BC0
+    style FETCH  fill:#1B5E20,color:#fff,stroke:#4CAF50
+    style RAG    fill:transparent,stroke:#38bdf8,stroke-width:2px,color:#333
+    style R1     fill:#0284c7,color:#fff,stroke:#38bdf8
+    style R2     fill:#4338ca,color:#fff,stroke:#818cf8
+    style R3     fill:#1a1a1a,color:#fff,stroke:#76b900,stroke-width:2px
+    style R4     fill:#15803d,color:#fff,stroke:#4ade80
+    style NX     fill:#0D47A1,color:#fff,stroke:#42A5F5
+    style CHECKS fill:#1e293b,color:#94a3b8,stroke:#334155
+    style SCORE  fill:#D69E2E,color:#fff,stroke:#B7791F
+    style OR     fill:#C2185B,color:#fff,stroke:#F48FB1
+    style HITL   fill:#FF6B35,color:#fff,stroke:#fff
+    style SC     fill:#7B1FA2,color:#fff,stroke:#CE93D8
+    style T      fill:#1e293b,color:#94a3b8,stroke:#334155
+    style R2V    fill:#D69E2E,color:#fff,stroke:#B7791F
+    style R3V    fill:#C53030,color:#fff,stroke:#9B2C2C
+    style R4V    fill:#742A2A,color:#fff,stroke:#F56565
+    style UI     fill:#F2EFE9,color:#1A1729,stroke:#D6D2C4
 ```
 
 ---
