@@ -314,9 +314,10 @@ This is the complete investigation output. **SATUS 2026-1 PLC** returned a **Ris
 
 | Role | Name |
 |---|---|
-| Backend / LangGraph | Srihari BT |
-| Frontend / React Flow | _(add names)_ |
-| RAG Pipeline | _(add names)_ |
+| LangGraph & Backend | Srihari BT |
+| Backend | Hanumaditya |
+| Frontend | Nehalika |
+| Frontend | Sagar |
 
 ---
 
