@@ -35,6 +35,59 @@ Financial criminals don't walk through the front door. They hide behind **layers
 
 ## Architecture
 
+### Full System Architecture
+
+A high-level overview of every component and how they communicate.
+
+```mermaid
+flowchart TB
+    subgraph Browser["🖥️  Browser  (React 18 + Vite · port 5173)"]
+        UI["DualEntryGateway\nCRN Input Form"]
+        LS["LoadingScreen\nLive pipeline progress"]
+        IV["InvestigationView\nReact Flow ownership graph"]
+        UI -->|"user submits CRN"| LS
+        LS -->|"result ready"| IV
+    end
+
+    subgraph MCP["🔐  MCP Credential Broker  (FastMCP · port 8002)"]
+        MCPS["mcp/server.py\nZero-leakage API key proxy"]
+    end
+
+    subgraph API["⚙️  FastAPI Backend  (Uvicorn · port 8001)"]
+        EP["POST /investigate"]
+        EP --> LG
+        subgraph LG["LangGraph Pipeline"]
+            N1["input_router"] --> N2["fetch_uk_api"]
+            N2 --> N3["depth_expand"]
+            N3 --> N4["cleanup_graph"]
+            N4 --> N5["calculate_risk"]
+            N5 --> N6["sanctions_check"]
+            N6 --> N7["compile_output"]
+        end
+    end
+
+    subgraph Data["🗄️  Data Layer"]
+        CH["UK Companies House\nREST API (live)"]
+        OFAC["OFAC SDN\nSQLite (local)"]
+        NX["NetworkX\nIn-memory graph"]
+    end
+
+    Browser -->|"HTTP POST"| EP
+    MCP -->|"injects API keys"| N2
+    N2 -->|"fetch company data"| CH
+    N5 -->|"cycle detection\ndirector density"| NX
+    N6 -->|"fuzzy name match"| OFAC
+    N7 -->|"JSON graph + risk score"| Browser
+
+    style Browser fill:#f0ede5,stroke:#ccc,color:#111
+    style API fill:#1a1a2e,stroke:none,color:#a5b4fc
+    style MCP fill:#2d1b69,stroke:none,color:#c4b5fd
+    style Data fill:#083344,stroke:none,color:#7dd3fc
+    style LG fill:#0f172a,stroke:#334155,color:#94a3b8
+```
+
+---
+
 ### LangGraph Investigation Pipeline
 
 The investigation runs as a **6-node LangGraph stateful pipeline** — each node is a discrete Python function wired together by LangGraph's state machine.
