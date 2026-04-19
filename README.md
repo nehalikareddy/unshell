@@ -375,8 +375,7 @@ Enter any UK Company Registration Number (CRN) and hit **Investigate**. Three de
 ### 2. Investigation in Progress — Live Pipeline View
 
 Once you submit a CRN, Unshell's 6-stage autonomous pipeline kicks in. Each step completes in real time — from fetching the company registry and building the ownership graph, to running cycle detection and screening against OFAC sanctions. The orbital spinner on the left confirms the pipeline is actively running. Progress is tracked as a step counter (e.g. `3/6`).
-
-<img width="1919" height="968" alt="Loading Screen" src="https://github.com/user-attachments/assets/091c8731-a637-4184-a9e4-1d9db48449dc" />
+<img width="1919" height="973" alt="Screenshot 2026-04-19 050420" src="https://github.com/user-attachments/assets/b6f829ca-71af-412e-9f90-d2f69597d5a5" />
 
 ---
 
