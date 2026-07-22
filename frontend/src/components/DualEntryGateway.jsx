@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import HistoryPanel from './HistoryPanel'
 
 /* ─── Tokens ─────────────────────────────────────────────────────────── */
 const C = {
@@ -94,10 +95,11 @@ function ErrorModal({ message, onClose }) {
 }
 
 /* ─── Main ───────────────────────────────────────────────────────────── */
-export default function DualEntryGateway({ onInvestigateAPI, error }) {
-  const [crn, setCrn]         = useState('')
-  const [modalErr, setMErr]   = useState(null)
-  const [focused, setFocused] = useState(false)
+export default function DualEntryGateway({ onInvestigateAPI, onLoadHistory, error }) {
+  const [crn, setCrn]             = useState('')
+  const [modalErr, setMErr]       = useState(null)
+  const [focused, setFocused]     = useState(false)
+  const [showHistory, setHistory] = useState(false)
 
   const displayError = modalErr || error
   const canGo = crn.trim().length > 0
@@ -330,6 +332,29 @@ export default function DualEntryGateway({ onInvestigateAPI, error }) {
                   {t !== 'NetworkX Graph Engine' && <span style={{ marginLeft: 8, color: C.border }}>·</span>}
                 </span>
               ))}
+            </div>
+
+            {/* History toggle */}
+            <div style={{ marginTop: 28 }}>
+              <button
+                onClick={() => setHistory(h => !h)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontFamily: FONT, fontSize: 12, fontWeight: 600,
+                  color: C.inkMuted, padding: 0, marginBottom: showHistory ? 16 : 0,
+                  transition: 'color 0.15s',
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                  style={{ transform: showHistory ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+                Recent Investigations
+              </button>
+              {showHistory && (
+                <HistoryPanel onLoad={onLoadHistory} />
+              )}
             </div>
           </div>
 

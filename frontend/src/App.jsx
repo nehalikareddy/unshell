@@ -31,10 +31,16 @@ export default function App() {
     setError(null)
   }
 
+  function handleLoadHistory(savedData) {
+    setData(savedData)
+    setLastCrn(savedData?.crn || '')
+    setScreen('results')
+  }
+
   return (
     <div style={{ minHeight: '100vh' }}>
       {screen === 'gateway' && (
-        <DualEntryGateway onInvestigateAPI={handleInvestigateAPI} error={error} />
+        <DualEntryGateway onInvestigateAPI={handleInvestigateAPI} onLoadHistory={handleLoadHistory} error={error} />
       )}
       {screen === 'loading' && <LoadingScreen crn={lastCrn} />}
       {screen === 'results' && (

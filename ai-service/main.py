@@ -1,6 +1,5 @@
 import asyncio
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
@@ -10,15 +9,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-app = FastAPI(title="Project Fusion 2.0", version="2.0")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+# ── Internal microservice — called by Express only, never by the browser ──────
+# No CORSMiddleware needed: all traffic is server-to-server (Express → Python).
+# If you need to call this service directly during development, use Postman or
+# curl — not the browser.
+app = FastAPI(
+    title="Unshell AI Microservice",
+    version="2.0",
+    description="Internal LangGraph + RAG pipeline. Exposed only to the Express backend.",
+    docs_url="/docs",   # Keep Swagger UI for development convenience
 )
+
+# CORS middleware intentionally removed — React never calls this service directly.
+# Express (port 5000) is the only caller; it runs server-to-server on localhost.
 
 class InvestigateAPIRequest(BaseModel):
     crn: str

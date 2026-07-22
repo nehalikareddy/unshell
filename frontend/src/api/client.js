@@ -7,16 +7,20 @@ export async function investigateByAPI(crn) {
     body: JSON.stringify({ mode: "api", crn })
   });
   if (!res.ok) {
-    let detail = `API error: ${res.status}`;
+    let detail = `Investigation failed (HTTP ${res.status}). Please try again.`;
     try {
       const body = await res.json();
-      if (body?.detail?.error) detail = body.detail.error;
-      else if (typeof body?.detail === "string") detail = body.detail;
+      const raw = body?.detail?.error ?? body?.detail ?? body?.error ?? null;
+      // Only show short, safe messages — never dump raw AI text into the modal
+      if (raw && typeof raw === 'string' && raw.length < 300) {
+        detail = raw;
+      }
     } catch {}
     throw new Error(detail);
   }
   return res.json();
 }
+
 
 export async function investigateByDocument(pdfFile) {
   const form = new FormData();
@@ -43,5 +47,17 @@ export async function resumeInvestigation(threadId, pdfFile) {
 
 export async function healthCheck() {
   const res = await fetch(`${BASE}/health`);
+  return res.json();
+}
+
+export async function fetchHistory(limit = 20) {
+  const res = await fetch(`${BASE}/history?limit=${limit}`);
+  if (!res.ok) throw new Error(`History error: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchInvestigationById(id) {
+  const res = await fetch(`${BASE}/history/${id}`);
+  if (!res.ok) throw new Error(`History error: ${res.status}`);
   return res.json();
 }
