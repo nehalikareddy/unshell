@@ -185,7 +185,7 @@ unshell/
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/futurater/unshell.git
+git clone https://github.com/nehalikareddy/unshell.git
 cd unshell
 ```
 
@@ -273,4 +273,4 @@ Open **http://localhost:5173**
 
 ## License
 
-MIT © 2026 futurater
+MIT © 2026 Nadikatla Nehalika
