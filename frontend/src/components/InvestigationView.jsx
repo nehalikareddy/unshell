@@ -172,14 +172,14 @@ export default function InvestigationView({ data, crn = '', onReset = () => { },
       />
 
       {/* ── 3-column grid ───────────────────────────────────────────────────── */}
-      <div style={{
+      <div className="investigation-grid" style={{
         flex: 1, minHeight: 0,
         display: 'grid',
         gridTemplateColumns: `220px 1fr ${panelWidth}px`,
         transition: 'grid-template-columns 0.28s cubic-bezier(0.4,0,0.2,1)',
         overflow: 'hidden',
       }}>
-        <EntitySidebar
+        <EntitySidebar className="entity-sidebar"
           nodes={data.graph.nodes}
           stats={data.stats}
           fatalFlags={data.fatal_flags}
@@ -191,6 +191,7 @@ export default function InvestigationView({ data, crn = '', onReset = () => { },
         />
 
         <GraphCanvas
+          className="graph-canvas"
           nodes={data.graph.nodes}
           edges={data.graph.edges}
           activeFilters={activeFilters}
@@ -199,7 +200,7 @@ export default function InvestigationView({ data, crn = '', onReset = () => { },
           onPaneClick={() => setSelectedEdge(null)}
         />
 
-        <div style={{ overflow: 'hidden' }}>
+        <div className="evidence-panel-wrapper" style={{ overflow: 'hidden' }}>
           {selectedEdge && (
             <EvidencePanel
               edge={selectedEdge}
@@ -213,6 +214,7 @@ export default function InvestigationView({ data, crn = '', onReset = () => { },
 
       {/* ── Bottom scoreboard ────────────────────────────────────────────────── */}
       <RiskScoreboard
+        className="bottom-scoreboard"
         riskScore={data.risk_score}
         riskLabel={data.risk_label}
         fatalFlags={data.fatal_flags}

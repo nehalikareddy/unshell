@@ -149,14 +149,14 @@ export default function DualEntryGateway({ onInvestigateAPI, onLoadHistory, erro
       </nav>
 
       {/* ── Main content — centered two-column ───────────────────────── */}
-      <div style={{
+      <div className="gateway-shell" style={{
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '80px 24px 40px',  // top pad accounts for nav
       }}>
-        <div style={{
+        <div className="gateway-grid" style={{
           display: 'flex',
           alignItems: 'center',
           gap: 0,
@@ -165,7 +165,7 @@ export default function DualEntryGateway({ onInvestigateAPI, onLoadHistory, erro
         }}>
 
           {/* ── LEFT — hero ──────────────────────────────────────────── */}
-          <div className="g-fade" style={{ flex: 1, paddingRight: 64 }}>
+          <div className="gateway-hero g-fade" style={{ flex: 1, paddingRight: 64 }}>
 
             {/* Badge */}
             <div style={{
@@ -230,10 +230,10 @@ export default function DualEntryGateway({ onInvestigateAPI, onLoadHistory, erro
           </div>
 
           {/* ── DIVIDER ──────────────────────────────────────────────── */}
-          <div style={{ width: 1, alignSelf: 'stretch', background: C.border, margin: '0 0', flexShrink: 0 }} />
+          <div className="gateway-divider" style={{ width: 1, alignSelf: 'stretch', background: C.border, margin: '0 0', flexShrink: 0 }} />
 
           {/* ── RIGHT — form ─────────────────────────────────────────── */}
-          <div className="g-fade-2" style={{ flex: 1, paddingLeft: 64 }}>
+          <div className="gateway-form g-fade-2" style={{ flex: 1, paddingLeft: 64 }}>
 
             <h2 style={{
               fontSize: 22, fontWeight: 700, color: C.ink,
