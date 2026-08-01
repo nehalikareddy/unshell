@@ -1,27 +1,33 @@
-import asyncio
-from fastapi import FastAPI, HTTPException, UploadFile, File
+import os
+import traceback
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import Optional
-from agent.orchestrator import run_investigation, run_investigation_document
-import traceback
 from dotenv import load_dotenv
+
+from agent.orchestrator import run_investigation, run_investigation_document
 
 load_dotenv()
 
-# ── Internal microservice — called by Express only, never by the browser ──────
-# No CORSMiddleware needed: all traffic is server-to-server (Express → Python).
-# If you need to call this service directly during development, use Postman or
-# curl — not the browser.
-app = FastAPI(
-    title="Unshell AI Microservice",
-    version="2.0",
-    description="Internal LangGraph + RAG pipeline. Exposed only to the Express backend.",
-    docs_url="/docs",   # Keep Swagger UI for development convenience
-)
+app = FastAPI(title="Project Fusion 2.0", version="2.0")
 
-# CORS middleware intentionally removed — React never calls this service directly.
-# Express (port 5000) is the only caller; it runs server-to-server on localhost.
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174").split(",")
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class InvestigateAPIRequest(BaseModel):
     crn: str
@@ -39,15 +45,8 @@ async def health_check():
 @app.post("/investigate")
 async def investigate(request: InvestigateAPIRequest):
     try:
-        # run_investigation is synchronous (LangGraph) — run in thread pool
-        # so we don't block the async event loop
-        result = await asyncio.wait_for(
-            asyncio.to_thread(run_investigation, request.crn),
-            timeout=120.0
-        )
+        result = run_investigation(crn=request.crn)
         return result
-    except asyncio.TimeoutError:
-        raise HTTPException(status_code=504, detail={"error": "Investigation timed out after 120s", "type": "TimeoutError"})
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
