@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import './App.css'
 import { investigateByAPI } from './api/client'
 import DualEntryGateway from './components/DualEntryGateway'
 import LoadingScreen from './components/LoadingScreen'
