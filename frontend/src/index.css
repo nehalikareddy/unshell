@@ -1,0 +1,355 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UNSHELL FORENSIC DESIGN SYSTEM
+   Synthesized from haoqi.design (cyber-craft editorial & neon lime accents)
+   and sharplink.com (corner reticle pins, condensed display typography & live telemetry)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── User Requested Palette ──────────────────────────────────────────────── */
+  --alabaster-grey:    #eaeaea;
+  --periwinkle:        #cbc5ea;
+  --vintage-lavender:  #73628a;
+  --twilight-indigo:   #313d5a;
+  --jet-black:         #183642;
+
+  /* Surfaces (Light Mode) */
+  --bg-obsidian:       #f5f4f8; /* Elegant light canvas with soft alabaster tone */
+  --bg-surface:        var(--alabaster-grey); /* #eaeaea */
+  --bg-card:           #ffffff; /* Crisp white card bodies */
+  --bg-card-hover:     #f8f7fc;
+  --bg-elevated:       #ffffff;
+  --bg-input:          #ffffff;
+
+  /* Borders */
+  --border-hairline:   rgba(49, 61, 90, 0.12);
+  --border-subtle:     rgba(115, 98, 138, 0.28);
+  --border-strong:     rgba(115, 98, 138, 0.55);
+  --border-lime:       var(--vintage-lavender);
+
+  /* Accents */
+  --accent-lime:       var(--vintage-lavender); /* #73628a */
+  --accent-lime-dim:   rgba(203, 197, 234, 0.45); /* #cbc5ea soft pill background */
+  --accent-lime-glow:  0 0 16px rgba(115, 98, 138, 0.22);
+
+  --accent-cyan:       var(--twilight-indigo); /* #313d5a */
+  --accent-cyan-dim:   rgba(203, 197, 234, 0.35);
+  --accent-cyan-glow:  0 0 16px rgba(49, 61, 90, 0.18);
+
+  --accent-lavender:   var(--vintage-lavender);
+  --accent-lavender-dim: rgba(115, 98, 138, 0.15);
+
+  --accent-red:        #D32F2F; /* Sanction / Critical Alert */
+  --accent-red-dim:    rgba(211, 47, 47, 0.12);
+  --accent-amber:      #D97706; /* Medium Risk */
+  --accent-amber-dim:  rgba(217, 119, 6, 0.12);
+  --accent-green:      #2E7D32; /* Auto Approve / Verified */
+  --accent-green-dim:  rgba(46, 125, 50, 0.12);
+
+  /* Typography Colors (High contrast for light mode) */
+  --text-white:        var(--jet-black);        /* Primary text: #183642 */
+  --text-light:        var(--twilight-indigo);  /* Secondary text: #313d5a */
+  --text-dim:          var(--vintage-lavender); /* Subtitle/dim text: #73628a */
+  --text-muted:        #8d849e;                 /* Tertiary text */
+
+  /* Glass Surface */
+  --glass-surface:     rgba(255, 255, 255, 0.88);
+
+  /* Font Families */
+  --font-display:    'Archivo', -apple-system, sans-serif;
+  --font-sans:       'Inter', system-ui, sans-serif;
+  --font-mono:       'JetBrains Mono', 'Archivo Narrow', monospace;
+
+  /* Corner Pins (Reticle style) */
+  --pin-size:        6px;
+  --pin-color:       var(--vintage-lavender);
+
+  /* Radii */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-pill: 9999px;
+
+  /* Backwards compatibility aliases */
+  --bg:            var(--bg-obsidian);
+  --surface-1:     var(--bg-surface);
+  --surface-2:     var(--bg-card);
+  --surface-3:     var(--bg-card-hover);
+  --border:        var(--border-hairline);
+  --border-dark:   var(--border-subtle);
+  --border-light:  var(--border-hairline);
+  --cream:         var(--bg-obsidian);
+  --cream-2:       var(--bg-surface);
+  --white:         var(--bg-card);
+  --text-dark:     var(--text-white);
+  --text-mid:      var(--text-light);
+  --text-1:        var(--text-white);
+  --text-2:        var(--text-dim);
+  --text-3:        var(--text-muted);
+}
+
+/* ── Reset ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-obsidian);
+  color: var(--text-white);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ── Sharplink Corner Pin Reticles ─────────────────────────────────────── */
+/* Signature 6px corner pins inspired by sharplink.com */
+.has-pin {
+  position: relative;
+}
+
+.has-pin--top-left::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: var(--pin-size);
+  height: var(--pin-size);
+  background-color: var(--pin-color, var(--accent-lime));
+  z-index: 5;
+  pointer-events: none;
+}
+
+.has-pin--top-right::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: var(--pin-size);
+  height: var(--pin-size);
+  background-color: var(--pin-color, var(--accent-lime));
+  z-index: 5;
+  pointer-events: none;
+}
+
+.has-pin--bottom-left::before {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: -1px;
+  width: var(--pin-size);
+  height: var(--pin-size);
+  background-color: var(--pin-color, var(--accent-lime));
+  z-index: 5;
+  pointer-events: none;
+}
+
+.has-pin--bottom-right::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: var(--pin-size);
+  height: var(--pin-size);
+  background-color: var(--pin-color, var(--accent-lime));
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Four-corner pin container wrapper */
+.pins-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border-hairline);
+}
+.pins-card::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent-lime);
+  z-index: 4;
+}
+.pins-card::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent-lime);
+  z-index: 4;
+}
+
+/* ── Haoqi Dotted Frames & Hover Highlights ────────────────────────────── */
+.dotted-box {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dotted-box::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 1px dotted transparent;
+  pointer-events: none;
+  transition: border-color 0.2s ease-out;
+}
+.dotted-box:hover::before {
+  border-color: var(--accent-lime);
+}
+
+.dotted-btn {
+  position: relative;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-white);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.dotted-btn::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 1.5px dotted transparent;
+  pointer-events: none;
+  transition: border-color 0.2s ease;
+}
+.dotted-btn:hover {
+  border-color: var(--accent-lime);
+  color: var(--accent-lime);
+}
+.dotted-btn:hover::before {
+  border-color: var(--accent-lime);
+}
+
+/* ── Cyber Telemetry & Micro-Labels ────────────────────────────────────── */
+.telemetry-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  background: rgba(203, 197, 234, 0.25);
+  border: 1px solid var(--border-subtle);
+  color: var(--twilight-indigo);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.telemetry-tag.lime {
+  background: rgba(203, 197, 234, 0.45);
+  border-color: var(--vintage-lavender);
+  color: var(--vintage-lavender);
+}
+
+.telemetry-tag.cyan {
+  background: rgba(203, 197, 234, 0.35);
+  border-color: rgba(49, 61, 90, 0.3);
+  color: var(--twilight-indigo);
+}
+
+.telemetry-tag.red {
+  background: var(--accent-red-dim);
+  border-color: rgba(211, 47, 47, 0.35);
+  color: var(--accent-red);
+}
+
+/* Pulse live dot */
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--vintage-lavender);
+  box-shadow: 0 0 8px var(--periwinkle);
+  animation: liveBlink 2s infinite ease-in-out;
+}
+
+@keyframes liveBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes radarSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes radarPing {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.4); }
+}
+
+/* ── Subtle Technical Grid Background (Light Mode) ─────────────────────── */
+.bg-tech-grid {
+  background-image: 
+    linear-gradient(to right, rgba(49, 61, 90, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(49, 61, 90, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-obsidian); }
+::-webkit-scrollbar-thumb { background: rgba(115, 98, 138, 0.35); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--vintage-lavender); }
+
+/* ── Glass effects (Light Mode) ────────────────────────────────────────── */
+.glass-obsidian {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-hairline);
+  box-shadow: 0 4px 20px rgba(24, 54, 66, 0.06);
+}
+
+/* ── React Flow overrides ──────────────────────────────────────────────── */
+.react-flow__pane {
+  background: var(--bg-obsidian) !important;
+}
+.react-flow__edge-text {
+  font-size: 10px !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 600 !important;
+}
+.react-flow__controls {
+  border-radius: var(--r-md) !important;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(24, 54, 66, 0.1) !important;
+  border: 1px solid var(--border-hairline) !important;
+  background: var(--bg-card) !important;
+}
+.react-flow__controls-button {
+  background: var(--bg-card) !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border-hairline) !important;
+  color: var(--text-dim) !important;
+  transition: all 0.15s !important;
+}
+.react-flow__controls-button:hover {
+  background: var(--bg-card-hover) !important;
+  color: var(--vintage-lavender) !important;
+}
+.react-flow__controls-button:last-child {
+  border-bottom: none !important;
+}
