@@ -15,14 +15,21 @@ function normalizeCrn(rawCrn = '') {
 }
 
 function extractAxiosError(err) {
+  const status = err.response?.status ?? 500;
   const data = err.response?.data;
-  const detail =
+  let detail =
     data?.detail?.error ??
     data?.detail ??
-    data?.error ??
-    err.message ??
-    'Internal server error';
-  const status = err.response?.status ?? 500;
+    data?.error;
+
+  if (!detail) {
+    if (status === 429) {
+      detail = 'Rate limit temporarily reached on the AI service. Please wait a few seconds and try again.';
+    } else {
+      detail = err.message ?? 'Internal server error';
+    }
+  }
+
   return {
     status,
     message: typeof detail === 'string' ? detail : JSON.stringify(detail),
