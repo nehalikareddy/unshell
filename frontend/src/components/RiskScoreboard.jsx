@@ -76,33 +76,25 @@ export default function RiskScoreboard({
   /* ── FULL VERSION (bottom telemetry bar) ──────────────────────────────── */
   return (
     <div
+      className="risk-scoreboard-bottom"
       style={{
-        height: 72,
-        flexShrink: 0,
-        background: 'var(--bg-surface)',
         borderLeft: `4px solid ${banner.border}`,
-        borderTop: '1px solid var(--border-hairline)',
-        display: 'flex',
-        alignItems: 'center',
-        overflow: 'hidden',
-        padding: '0 24px',
-        gap: 20,
       }}
     >
       {/* S1: Score telemetry */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 120 }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
-          RISK_SCORE_TOTAL
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 100, flexShrink: 0 }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
+          RISK_SCORE
         </span>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, fontFamily: 'var(--font-mono)' }}>
-          <span style={{ color: banner.text, fontSize: 24, fontWeight: 900 }}>{riskScore ?? '--'}</span>
-          <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>/ 100</span>
+          <span style={{ color: banner.text, fontSize: 20, fontWeight: 900 }}>{riskScore ?? '--'}</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>/ 100</span>
           <span
             style={{
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: 700,
               color: banner.text,
-              marginLeft: 6,
+              marginLeft: 4,
             }}
           >
             [{riskLabel?.replace(/_/g, ' ') || 'ANALYZED'}]
@@ -110,14 +102,14 @@ export default function RiskScoreboard({
         </div>
       </div>
 
-      <div style={{ width: 1, height: 36, background: 'var(--border-hairline)' }} />
+      <div className="risk-divider" style={{ width: 1, height: 32, background: 'var(--border-hairline)', flexShrink: 0 }} />
 
       {/* S2: Flags / Detected Risk Vectors */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, overflow: 'hidden' }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
-          EVIDENCE_VECTORS // FATAL_FLAGS
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, overflow: 'hidden', minWidth: 140 }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
+          EVIDENCE_VECTORS
         </span>
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }}>
+        <div style={{ display: 'flex', gap: 5, overflowX: 'auto', paddingBottom: 2 }}>
           {fatalFlags.map(f => (
             <span
               key={f}
@@ -137,35 +129,36 @@ export default function RiskScoreboard({
             </span>
           ))}
           {fatalFlags.length === 0 && cumulativeVectors.length === 0 && (
-            <span style={{ fontSize: 11, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
-              NO CRITICAL ANOMALIES FLAGGED IN CURRENT RECURSION DEPTH
+            <span style={{ fontSize: 10, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
+              NO CRITICAL ANOMALIES
             </span>
           )}
         </div>
       </div>
 
-      <div style={{ width: 1, height: 36, background: 'var(--border-hairline)' }} />
+      <div className="risk-divider" style={{ width: 1, height: 32, background: 'var(--border-hairline)', flexShrink: 0 }} />
 
       {/* S3: Sanctions Hit & Resolved UBO */}
-      <div style={{ minWidth: 220, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
+      <div style={{ minWidth: 150, display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
           BENEFICIAL_OWNERSHIP
         </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {sanctionsHit && (
-            <span className="telemetry-tag red" style={{ fontSize: 9 }} title={sanctionsDetail || undefined}>
+            <span className="telemetry-tag red" style={{ fontSize: 8.5 }} title={sanctionsDetail || undefined}>
               OFAC HIT
             </span>
           )}
           <span
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: 700,
               color: 'var(--text-white)',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
+              maxWidth: 180,
             }}
           >
             {resolvedUbo || 'None Identified'}

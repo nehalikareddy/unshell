@@ -72,24 +72,7 @@ export default function DualEntryGateway({ onInvestigateAPI, onInvestigateDocume
       className="bg-tech-grid"
     >
       {/* ── Top Navigation Bar ────────────────────────────────────────── */}
-      <nav
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 60,
-          zIndex: 100,
-          background: 'rgba(255, 255, 255, 0.88)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: '1px solid var(--border-hairline)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 32px',
-        }}
-      >
+      <nav className="gateway-nav">
         {/* Brand Logo & Telemetry */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -135,10 +118,10 @@ export default function DualEntryGateway({ onInvestigateAPI, onInvestigateDocume
             </div>
           </div>
 
-          <div style={{ width: 1, height: 18, background: 'var(--border-hairline)', margin: '0 4px' }} />
+          <div className="nav-telemetry-chip" style={{ width: 1, height: 18, background: 'var(--border-hairline)', margin: '0 4px' }} />
 
           {/* Live status chip (Haoqi / Sharplink style) */}
-          <div className="telemetry-tag lime" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div className="telemetry-tag lime nav-telemetry-chip" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span className="live-dot" />
             <span>SYS[LIVE]</span>
             <span style={{ color: 'var(--text-muted)' }}>·</span>
@@ -269,27 +252,8 @@ export default function DualEntryGateway({ onInvestigateAPI, onInvestigateDocume
       )}
 
       {/* ── Main Hero & Terminal Container ────────────────────────────── */}
-      <main
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '110px 24px 60px',
-          maxWidth: 1180,
-          margin: '0 auto',
-        }}
-      >
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1.15fr',
-            gap: 56,
-            alignItems: 'start',
-            width: '100%',
-          }}
-        >
+      <main className="gateway-main">
+        <div className="gateway-grid">
           {/* ── LEFT COLUMN: Editorial & Intelligence Narrative ─────────── */}
           <div>
             {/* System Coordinate Tag */}
@@ -303,18 +267,7 @@ export default function DualEntryGateway({ onInvestigateAPI, onInvestigateDocume
             </div>
 
             {/* Hero Heading (Sharplink + Haoqi Bold Condensed Display) */}
-            <h1
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(44px, 5.2vw, 68px)',
-                fontWeight: 900,
-                lineHeight: 0.95,
-                letterSpacing: '-0.035em',
-                textTransform: 'uppercase',
-                color: 'var(--text-white)',
-                marginBottom: 16,
-              }}
-            >
+            <h1 className="hero-heading">
               AUTONOMOUS <br />
               <span style={{ color: 'var(--accent-lime)' }}>OWNERSHIP</span> <br />
               FORENSICS.
@@ -399,16 +352,7 @@ export default function DualEntryGateway({ onInvestigateAPI, onInvestigateDocume
 
           {/* ── RIGHT COLUMN: Interactive Forensic Terminal ───────────────── */}
           <div>
-            <div
-              className="has-pin has-pin--top-left has-pin--top-right has-pin--bottom-left has-pin--bottom-right"
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-subtle)',
-                padding: '36px 32px',
-                position: 'relative',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-              }}
-            >
+            <div className="has-pin has-pin--top-left has-pin--top-right has-pin--bottom-left has-pin--bottom-right gateway-card">
               {/* Terminal Banner */}
               <div
                 style={{

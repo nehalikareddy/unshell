@@ -371,6 +371,8 @@ function GraphInner({
 
   const [showOfficers, setShowOfficers] = useState(true)
   const [layoutDir, setLayoutDir]       = useState('TB')
+  const [showLegend, setShowLegend]     = useState(false)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
 
   // Filter out Depth-2 "no_psc_registered" ghost nodes and optionally officer-only nodes
   const { visibleNodes, visibleEdges, officerCount } = useMemo(() => {
@@ -452,20 +454,22 @@ function GraphInner({
       <div
         style={{
           position: 'absolute',
-          top: 14,
-          left: 14,
+          top: isMobile ? 8 : 14,
+          left: isMobile ? 8 : 14,
           zIndex: 12,
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
+          gap: isMobile ? 5 : 8,
           background: 'rgba(255,255,255,0.94)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
           border: '1px solid #E2DDD5',
           borderRadius: 999,
-          padding: '5px 8px',
+          padding: isMobile ? '4px 6px' : '5px 8px',
           boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
           fontFamily: 'Inter, system-ui, sans-serif',
+          maxWidth: isMobile ? 'calc(100vw - 16px)' : 'auto',
+          overflowX: 'auto',
         }}
       >
         {officerCount > 0 && (
@@ -477,15 +481,18 @@ function GraphInner({
               color: showOfficers ? '#FFFFFF' : '#4A4763',
               border: 'none',
               borderRadius: 999,
-              padding: '5px 12px',
-              fontSize: 11,
+              padding: isMobile ? '4px 9px' : '5px 12px',
+              fontSize: isMobile ? 10 : 11,
               fontWeight: 600,
               cursor: 'pointer',
               transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap',
             }}
             title="Toggle operational directors & secretaries"
           >
-            {showOfficers ? `Showing Officers (${officerCount})` : `Show Officers (${officerCount})`}
+            {showOfficers
+              ? (isMobile ? `Officers (${officerCount})` : `Showing Officers (${officerCount})`)
+              : (isMobile ? `+ Officers (${officerCount})` : `Show Officers (${officerCount})`)}
           </button>
         )}
 
@@ -497,14 +504,15 @@ function GraphInner({
             color: '#1A1729',
             border: '1px solid #E2DDD5',
             borderRadius: 999,
-            padding: '5px 12px',
-            fontSize: 11,
+            padding: isMobile ? '4px 9px' : '5px 12px',
+            fontSize: isMobile ? 10 : 11,
             fontWeight: 600,
             cursor: 'pointer',
+            whiteSpace: 'nowrap',
           }}
           title="Switch graph orientation"
         >
-          {layoutDir === 'TB' ? '↕ Vertical Tree' : '↔ Horizontal Tree'}
+          {layoutDir === 'TB' ? (isMobile ? '↕ Tree' : '↕ Vertical Tree') : (isMobile ? '↔ Tree' : '↔ Horizontal Tree')}
         </button>
 
         <button
@@ -515,14 +523,15 @@ function GraphInner({
             color: '#4A4763',
             border: '1px solid #E2DDD5',
             borderRadius: 999,
-            padding: '5px 11px',
-            fontSize: 11,
+            padding: isMobile ? '4px 9px' : '5px 11px',
+            fontSize: isMobile ? 10 : 11,
             fontWeight: 600,
             cursor: 'pointer',
+            whiteSpace: 'nowrap',
           }}
           title="Reset positions and fit graph to screen"
         >
-          ⤢ Auto-Fit
+          ⤢ Fit
         </button>
       </div>
 
@@ -536,107 +545,166 @@ function GraphInner({
         onPaneClick={onPaneClick}
         nodesDraggable={true}
         fitView
-        fitViewOptions={{ padding: 0.22, maxZoom: 1.15 }}
-        minZoom={0.2}
+        fitViewOptions={{ padding: isMobile ? 0.12 : 0.22, maxZoom: 1.15 }}
+        minZoom={0.15}
         maxZoom={2.5}
         proOptions={{ hideAttribution: true }}
       >
         <Background color="#DCD7CD" gap={28} size={1.2} />
-        <Controls position="bottom-left" />
-        <MiniMap
-          position="top-right"
-          pannable
-          zoomable
-          style={{
-            width: 150,
-            height: 96,
-            background: 'rgba(255,255,255,0.9)',
-            border: '1px solid #E2DDD5',
-            borderRadius: 10,
-          }}
-          nodeColor={n => {
-            if (n.data?.is_target) return '#7C68D8'
-            if ((n.data?.tags || []).includes('UBO')) return '#F6AD55'
-            if ((n.data?.tags || []).includes('OFAC') || (n.data?.tags || []).includes('LOOP')) return '#FC8181'
-            if (n.data?.isBelowTarget) return '#CBD5E1'
-            return '#90CDF4'
-          }}
-        />
+        <Controls position="bottom-left" style={{ bottom: isMobile ? 8 : 16, left: isMobile ? 8 : 16 }} />
+        {!isMobile && (
+          <MiniMap
+            position="top-right"
+            pannable
+            zoomable
+            style={{
+              width: 150,
+              height: 96,
+              background: 'rgba(255,255,255,0.9)',
+              border: '1px solid #E2DDD5',
+              borderRadius: 10,
+            }}
+            nodeColor={n => {
+              if (n.data?.is_target) return '#7C68D8'
+              if ((n.data?.tags || []).includes('UBO')) return '#F6AD55'
+              if ((n.data?.tags || []).includes('OFAC') || (n.data?.tags || []).includes('LOOP')) return '#FC8181'
+              if (n.data?.isBelowTarget) return '#CBD5E1'
+              return '#90CDF4'
+            }}
+          />
+        )}
       </ReactFlow>
 
-      {/* ── Legend ─────────────────────────────────────────────────────────── */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 16,
-          right: 16,
-          zIndex: 10,
-          background: 'rgba(255,255,255,0.94)',
-          backdropFilter: 'blur(14px)',
-          WebkitBackdropFilter: 'blur(14px)',
-          border: '1px solid #E2DDD5',
-          borderRadius: 14,
-          padding: '12px 16px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 5,
-          pointerEvents: 'none',
-          minWidth: 168,
-          fontFamily: 'Inter, sans-serif',
-        }}
-      >
-        <div
+      {/* ── Mobile Legend Toggle Pill ───────────────────────────────────────── */}
+      {isMobile && !showLegend && (
+        <button
+          type="button"
+          onClick={() => setShowLegend(true)}
           style={{
-            fontSize: 9,
+            position: 'absolute',
+            bottom: 12,
+            right: 12,
+            zIndex: 10,
+            background: 'rgba(255,255,255,0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid #E2DDD5',
+            borderRadius: 999,
+            padding: '5px 12px',
+            fontSize: 10.5,
             fontWeight: 700,
-            color: '#8C8070',
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-            marginBottom: 4,
+            color: '#1A1729',
+            cursor: 'pointer',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
           }}
         >
-          Legend
-        </div>
-        {[
-          { bg: '#EEF0FB', border: '#7C68D8', circle: false, label: 'Target Company' },
-          { bg: '#fffbeb', border: '#F6AD55', circle: true,  label: '👑 UBO Identified' },
-          { bg: '#F8F7FB', border: '#C4B5FD', circle: false, label: 'Corporate Owner' },
-          { bg: '#F7F8FC', border: '#C7D2FE', circle: true,  label: 'Individual / Officer' },
-          { bg: '#EBF8FF', border: '#63B3ED', circle: false, label: 'Offshore Entity' },
-          { bg: '#fff5f5', border: '#FC8181', circle: false, label: 'OFAC / High Risk' },
-          { bg: '#F0FFF4', border: '#68D391', circle: false, label: 'PDF Verified' },
-        ].map(({ bg, border, circle, label }) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>ℹ</span>
+          <span>Legend</span>
+        </button>
+      )}
+
+      {/* ── Legend ─────────────────────────────────────────────────────────── */}
+      {(!isMobile || showLegend) && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: isMobile ? 10 : 16,
+            right: isMobile ? 10 : 16,
+            zIndex: 15,
+            background: 'rgba(255,255,255,0.96)',
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+            border: '1px solid #E2DDD5',
+            borderRadius: 14,
+            padding: '10px 14px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+            maxWidth: isMobile ? 220 : 180,
+            maxHeight: isMobile ? '45vh' : 'auto',
+            overflowY: isMobile ? 'auto' : 'visible',
+            fontFamily: 'Inter, sans-serif',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 2,
+            }}
+          >
             <div
               style={{
-                width: 12,
-                height: 12,
-                borderRadius: circle ? 6 : 3,
-                background: bg,
-                border: `1.5px solid ${border}`,
-                flexShrink: 0,
+                fontSize: 9,
+                fontWeight: 700,
+                color: '#8C8070',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
               }}
-            />
-            <span style={{ fontSize: 10.5, color: '#5C5248' }}>{label}</span>
+            >
+              Legend
+            </div>
+            {isMobile && (
+              <button
+                type="button"
+                onClick={() => setShowLegend(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  color: '#8C8070',
+                  padding: '0 4px',
+                }}
+              >
+                ✕
+              </button>
+            )}
           </div>
-        ))}
+          {[
+            { bg: '#EEF0FB', border: '#7C68D8', circle: false, label: 'Target Company' },
+            { bg: '#fffbeb', border: '#F6AD55', circle: true,  label: '👑 UBO Identified' },
+            { bg: '#F8F7FB', border: '#C4B5FD', circle: false, label: 'Corporate Owner' },
+            { bg: '#F7F8FC', border: '#C7D2FE', circle: true,  label: 'Individual / Officer' },
+            { bg: '#EBF8FF', border: '#63B3ED', circle: false, label: 'Offshore Entity' },
+            { bg: '#fff5f5', border: '#FC8181', circle: false, label: 'OFAC / High Risk' },
+            { bg: '#F0FFF4', border: '#68D391', circle: false, label: 'PDF Verified' },
+          ].map(({ bg, border, circle, label }) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <div
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: circle ? 5 : 2,
+                  background: bg,
+                  border: `1.5px solid ${border}`,
+                  flexShrink: 0,
+                }}
+              />
+              <span style={{ fontSize: 10, color: '#5C5248' }}>{label}</span>
+            </div>
+          ))}
 
-        <div style={{ height: 1, background: '#E2DDD5', margin: '4px 0' }} />
+          <div style={{ height: 1, background: '#E2DDD5', margin: '3px 0' }} />
 
-        {[
-          { color: '#4338CA', dash: 'none', width: 2.4, label: 'Ownership (PSC)' },
-          { color: '#7C3AED', dash: '6 4',  width: 1.8, label: 'Depth-2 Chain' },
-          { color: '#94A3B8', dash: '3 3',  width: 1.4, label: 'Director / Officer' },
-          { color: '#0D9488', dash: '8 4',  width: 2.0, label: 'PDF Verified' },
-          { color: '#C53030', dash: '4 4',  width: 1.6, label: 'Unverified / AI' },
-        ].map(({ color, dash, width, label }) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <LineSample color={color} dash={dash} width={width} />
-            <span style={{ fontSize: 10.5, color: '#5C5248' }}>{label}</span>
-          </div>
-        ))}
-      </div>
+          {[
+            { color: '#4338CA', dash: 'none', width: 2.4, label: 'Ownership (PSC)' },
+            { color: '#7C3AED', dash: '6 4',  width: 1.8, label: 'Depth-2 Chain' },
+            { color: '#94A3B8', dash: '3 3',  width: 1.4, label: 'Director / Officer' },
+            { color: '#0D9488', dash: '8 4',  width: 2.0, label: 'PDF Verified' },
+            { color: '#C53030', dash: '4 4',  width: 1.6, label: 'Unverified / AI' },
+          ].map(({ color, dash, width, label }) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <LineSample color={color} dash={dash} width={width} />
+              <span style={{ fontSize: 10, color: '#5C5248' }}>{label}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
