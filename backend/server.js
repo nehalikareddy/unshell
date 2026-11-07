@@ -14,31 +14,35 @@ const app = express();
 
 // ── Middleware ──────────────────────────────────────────────────────────────
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    process.env.FRONTEND_URL,
-  ].filter(Boolean),
+  origin: true, // Dynamically reflects requesting origin (Vercel, localhost, etc.)
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+app.options('*', cors());
 
 // Raw body passthrough is needed for multipart (document uploads).
 // express.json() only applies to application/json requests.
 app.use(express.json());
 
 // ── Routes ──────────────────────────────────────────────────────────────────
+// Mount on both /api and / to handle client configurations with or without /api suffix
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
 app.use('/api', investigateRoutes);
+app.use('/', investigateRoutes);
 
 // ── Health check ─────────────────────────────────────────────────────────────
-app.get('/api/health', (_req, res) => {
+const healthHandler = (_req, res) => {
   res.json({
     status: 'ok',
     service: 'unshell-express',
     version: '1.0.0',
     aiServiceUrl: process.env.AI_SERVICE_URL || 'http://localhost:8000',
   });
-});
+};
+app.get('/api/health', healthHandler);
+app.get('/health', healthHandler);
 
 // ── Global error handler ─────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
