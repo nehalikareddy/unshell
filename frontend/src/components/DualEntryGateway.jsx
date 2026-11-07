@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import HistoryPanel from './HistoryPanel';
 import { useAuth } from '../context/AuthContext';
-import { investigateByDocument } from '../api/client';
+import { investigateByDocument, normalizeCrn, CRN_REGEX } from '../api/client';
 
 const DEMOS = [
   { label: 'Monzo Bank Ltd', crn: '09446231', tag: 'FinTech Banking' },
@@ -9,9 +9,7 @@ const DEMOS = [
   { label: 'Seabon Limited', crn: '06026625', tag: 'Maritime Logistics' },
 ];
 
-const CRN_REGEX = /^([A-Z]{2}\d{6}|\d{8})$/i;
-
-export default function DualEntryGateway({ onInvestigateAPI, onLoadHistory, error }) {
+export default function DualEntryGateway({ onInvestigateAPI, onInvestigateDocument, onLoadHistory, error, onClearError = () => {} }) {
   const { user, logout, openAuthModal } = useAuth();
   const [activeTab, setActiveTab]   = useState('crn'); // 'crn' | 'document'
   const [crn, setCrn]               = useState('');
@@ -23,14 +21,23 @@ export default function DualEntryGateway({ onInvestigateAPI, onLoadHistory, erro
   const displayError = modalErr || error;
   const canGo = crn.trim().length > 0;
 
+  function handleDismissError() {
+    setMErr(null);
+    onClearError();
+  }
+
   function go(val) {
-    const t = (val ?? crn).trim().toUpperCase();
-    if (!t) return;
-    if (!CRN_REGEX.test(t)) {
-      setMErr(`"${t}" is not a valid UK CRN. Expected 8 numeric digits (e.g. 09446231) or 2-letter prefix + 6 digits (e.g. SC123456).`);
+    const raw = val ?? crn;
+    const normalized = normalizeCrn(raw);
+    if (!normalized) return;
+    if (!CRN_REGEX.test(normalized)) {
+      setMErr(`"${raw.trim()}" is not a valid UK CRN. Enter up to 8 digits (e.g. 09446231) or a valid prefix + digits (e.g. SC123456, OC301234).`);
       return;
     }
-    onInvestigateAPI(t);
+    setMErr(null);
+    onClearError();
+    setCrn(normalized);
+    onInvestigateAPI(normalized);
   }
 
   async function handleFileUpload(e) {
@@ -246,7 +253,7 @@ export default function DualEntryGateway({ onInvestigateAPI, onLoadHistory, erro
             ALERT // {displayError}
           </div>
           <button
-            onClick={() => setMErr(null)}
+            onClick={handleDismissError}
             style={{
               background: 'none',
               border: 'none',
@@ -571,6 +578,8 @@ export default function DualEntryGateway({ onInvestigateAPI, onLoadHistory, erro
                           key={d.crn}
                           className="dotted-btn"
                           onClick={() => {
+                            setMErr(null);
+                            onClearError();
                             setCrn(d.crn);
                             go(d.crn);
                           }}

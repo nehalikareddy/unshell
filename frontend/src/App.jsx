@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { investigateByAPI } from './api/client';
+import { investigateByAPI, investigateByDocument, normalizeCrn } from './api/client';
 import DualEntryGateway from './components/DualEntryGateway';
 import LoadingScreen from './components/LoadingScreen';
 import InvestigationView from './components/InvestigationView';
@@ -14,16 +14,33 @@ function AppContent() {
   const [lastCrn, setLastCrn]               = useState('');
 
   async function handleInvestigateAPI(crn) {
+    const cleanCrn = normalizeCrn(crn);
     setScreen('loading');
     setError(null);
     setData(null);
-    setLastCrn(crn);
+    setLastCrn(cleanCrn);
     try {
-      const result = await investigateByAPI(crn);
+      const result = await investigateByAPI(cleanCrn);
       setData(result);
       setScreen('results');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Investigation failed. Please try again.');
+      setScreen('gateway');
+    }
+  }
+
+  async function handleInvestigateDocument(pdfFile) {
+    if (!pdfFile) return;
+    setScreen('loading');
+    setError(null);
+    setData(null);
+    setLastCrn(pdfFile.name);
+    try {
+      const result = await investigateByDocument(pdfFile);
+      setData(result);
+      setScreen('results');
+    } catch (err) {
+      setError(err.message || 'Document extraction failed. Please try again.');
       setScreen('gateway');
     }
   }
@@ -35,6 +52,7 @@ function AppContent() {
   }
 
   function handleLoadHistory(savedData) {
+    setError(null);
     setData(savedData);
     setLastCrn(savedData?.crn || '');
     setScreen('results');
@@ -47,8 +65,10 @@ function AppContent() {
       {screen === 'gateway' && (
         <DualEntryGateway
           onInvestigateAPI={handleInvestigateAPI}
+          onInvestigateDocument={handleInvestigateDocument}
           onLoadHistory={handleLoadHistory}
           error={error}
+          onClearError={() => setError(null)}
         />
       )}
 
@@ -56,10 +76,11 @@ function AppContent() {
 
       {screen === 'results' && (
         <InvestigationView
-          key={investigationData?.thread_id || lastCrn}
+          key={investigationData?.thread_id || investigationData?._id || lastCrn}
           data={investigationData}
           crn={lastCrn}
           onReset={handleReset}
+          onUploadDocument={handleInvestigateDocument}
         />
       )}
     </div>

@@ -49,14 +49,12 @@ def calculate_risk_score(
     pscs: list[dict],
     known_shell_addresses: list[str],
     filing_count: int = 0,
-    # Extended signals
     is_dormant: bool = False,
     accounts_overdue: bool = False,
     has_insolvency: bool = False,
     company_status: str = "active",
     charge_count: int = 0,
     resigned_officer_count: int = 0,
-    # RAG-detected filing signals (from PDF analysis)
     filing_risk_signals: Optional[dict] = None,
 ) -> tuple[int, list[str], list[str]]:
     score = 0
@@ -95,6 +93,14 @@ def calculate_risk_score(
         score += 25
         cumulative_vectors.append("SMURF_NETWORK")
 
+    # ── 4.b Offshore Wall (Offshore PSC or Entity) ───────────────────────────
+    has_offshore = any(p.get("is_offshore", False) for p in pscs) or any(
+        "OFFSHORE" in (n.get("tags") or []) for n in nodes
+    )
+    if has_offshore:
+        score += 30
+        cumulative_vectors.append("OFFSHORE_WALL")
+
     # ── 5. Dormant company ────────────────────────────────────────────────────
     if is_dormant:
         score += 20
@@ -113,7 +119,7 @@ def calculate_risk_score(
     # ── 8. Strike-off / dissolved ─────────────────────────────────────────────
     if company_status not in ("active", ""):
         score += 30
-        cumulative_vectors.append(f"STATUS_{company_status.upper().replace('-','_')}")
+        cumulative_vectors.append(f"STATUS_{company_status.upper().replace('-', '_')}")
 
     # ── 9. High officer turnover ──────────────────────────────────────────────
     if resigned_officer_count >= 5:
@@ -130,8 +136,6 @@ def calculate_risk_score(
         cumulative_vectors.append("CORPORATE_DIRECTOR")
 
     # ── 9.c RAG Filing Signals ────────────────────────────────────────────────
-    # These signals come from the 4-stage RAG pipeline analysing real filing PDFs.
-    # They are harder to detect from the structured API alone.
     if filing_risk_signals:
         if "SMURF_NETWORK" in filing_risk_signals and "SMURF_NETWORK" not in cumulative_vectors:
             score += 25
@@ -150,8 +154,6 @@ def calculate_risk_score(
             fatal_flags.append("HIDDEN_BENEFICIAL_OWNER")
 
     # ── 10. Corporate Veil / Shell Director Array (No PSCs) ───────────────────
-    # If a company has multiple directors but 0 PSCs, they are actively hiding ownership.
-    # This is the exact definition of an offshore veil.
     directors = [n for n in nodes if n.get("role") and "director" in n.get("role").lower()]
     if len(pscs) == 0 and len(directors) >= 3:
         score += 45
@@ -159,47 +161,57 @@ def calculate_risk_score(
         if "HIDDEN_BENEFICIAL_OWNER" not in fatal_flags:
             fatal_flags.append("HIDDEN_BENEFICIAL_OWNER")
 
-    # ── 10. Circular ownership loop (FATAL) ───────────────────────────────────
+    # ── 11. Circular ownership loop (FATAL) ───────────────────────────────────
     cycles = detect_cycles(graph)
     if cycles:
         score += 100
         fatal_flags.append("CIRCULAR_LOOP")
+        cycle_node_ids = {nid for cycle in cycles for nid in cycle}
+        for n in nodes:
+            if n["id"] in cycle_node_ids:
+                n.setdefault("tags", [])
+                if "LOOP" not in n["tags"]:
+                    n["tags"].append("LOOP")
 
-    # ── 11. Nominee Puppet — pass-through entity (FATAL) ─────────────────────
-    # Only flags nodes with BOTH in-degree ≥ 1 AND out-degree ≥ 1 (genuine pass-throughs)
-    puppet_nodes = []
+    # ── 12. Nominee Puppet — pass-through entity (FATAL) ─────────────────────
+    puppet_found = False
     for node_id in graph.nodes():
         if graph.in_degree(node_id) >= 1 and graph.out_degree(node_id) >= 1:
             node_data = graph.nodes.get(node_id, {})
-            if node_data.get("type") in ("company", "trust"):
-                score += 75
-                fatal_flags.append("NOMINEE_PUPPET")
-                puppet_nodes.append(node_id)
-                
-                # Tag it for the frontend
+            if node_data.get("type") in ("company", "trust") and not node_data.get("is_target", False):
+                puppet_found = True
                 for n in nodes:
                     if n["id"] == node_id:
-                        if "tags" not in n: n["tags"] = []
+                        n.setdefault("tags", [])
                         if "NOMINEE_PUPPET" not in n["tags"]:
                             n["tags"].append("NOMINEE_PUPPET")
+                        if "PUPPET" not in n["tags"]:
+                            n["tags"].append("PUPPET")
                         break
-                break
+
+    if puppet_found:
+        score += 75
+        if "NOMINEE_PUPPET" not in fatal_flags:
+            fatal_flags.append("NOMINEE_PUPPET")
 
     return min(score, 100), fatal_flags, cumulative_vectors
 
 
 def get_risk_label(score: int) -> str:
-    if score <= 29:   return "LOW_RISK"
-    if score <= 64:   return "MEDIUM_RISK"
-    if score <= 94:   return "HIGH_RISK"
+    if score <= 29:
+        return "AUTO_APPROVE"
+    if score <= 64:
+        return "MEDIUM_RISK"
+    if score <= 94:
+        return "HIGH_RISK"
     return "CRITICAL"
 
 
 def get_action_required(score: int, fatal_flags: list[str], sanctions_hit: bool) -> str:
     if sanctions_hit or score >= 95:
-        return "File SAR immediately. Block account opening."
+        return "SAR Filing Required"
     if score >= 65:
-        return "Escalate to senior compliance officer. Do not open account."
+        return "Immediate Rejection"
     if score >= 30:
-        return "Manual review required. Request additional KYB documents."
-    return "Auto-approved. Standard onboarding may proceed."
+        return "Human Review"
+    return "Auto-Approve"

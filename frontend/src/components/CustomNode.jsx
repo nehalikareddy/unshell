@@ -4,6 +4,7 @@ const TAG_CONFIG = {
   LOOP:          { symbol: '↻', bg: 'rgba(255,65,54,0.2)', text: '#FF4136', title: 'Circular Loop Detected' },
   OFFSHORE:      { symbol: '⚓', bg: 'rgba(115,98,138,0.3)', text: 'var(--periwinkle)', title: 'Offshore Holding' },
   PUPPET:        { symbol: '♟', bg: 'rgba(255,184,0,0.2)', text: '#FFB800', title: 'Nominee Puppet' },
+  NOMINEE_PUPPET:{ symbol: '♟', bg: 'rgba(255,184,0,0.2)', text: '#FFB800', title: 'Nominee Puppet' },
   OFAC:          { symbol: '⚠', bg: 'rgba(255,65,54,0.3)', text: '#FF4136', title: 'OFAC Sanctions Hit' },
   DEAD_END:      { symbol: '✕', bg: 'rgba(255,255,255,0.1)', text: 'var(--text-dim)', title: 'Dead End' },
   CORPORATE_PSC: { symbol: '🏛', bg: 'rgba(115,98,138,0.25)', text: 'var(--vintage-lavender)', title: 'Corporate PSC' },
@@ -48,10 +49,27 @@ function roleLabel(data) {
 export default function CustomNode({ data }) {
   const theme = resolveTheme(data);
 
-  const formatName = (str) => {
-    if (!str || str.toLowerCase() === 'unknown') return 'Unknown Entity';
-    const parts = str.split(', ');
-    return parts.length === 2 ? `${parts[1]} ${parts[0]}` : str;
+  const formatName = (raw = '') => {
+    if (!raw || raw.toLowerCase() === 'unknown') return 'Unknown Entity';
+    if (raw.includes(',')) {
+      return raw
+        .split(',')
+        .map(p => p.trim())
+        .filter(Boolean)
+        .reverse()
+        .map(part =>
+          part
+            .split(/\s+/)
+            .map(word =>
+              word === word.toUpperCase() && word.length > 1
+                ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                : word
+            )
+            .join(' ')
+        )
+        .join(' ');
+    }
+    return raw;
   };
 
   const formatPct = (p) => {
@@ -64,7 +82,7 @@ export default function CustomNode({ data }) {
 
   const tags = data.tags || [];
   const isTarget = data.is_target;
-  const isPuppet = tags.includes('NOMINEE_PUPPET');
+  const isPuppet = tags.includes('NOMINEE_PUPPET') || tags.includes('PUPPET');
   const isUbo    = tags.includes('UBO');
 
   const name = formatName(data.label || '');

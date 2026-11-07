@@ -1,7 +1,9 @@
 import axios from 'axios';
 import FormData from 'form-data';
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+function getAiServiceUrl() {
+  return (process.env.AI_SERVICE_URL || 'http://localhost:8000').replace(/\/+$/, '');
+}
 
 /**
  * Calls the Python AI microservice with a Companies Registration Number.
@@ -12,9 +14,9 @@ const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
  */
 export async function runInvestigationByAPI(crn) {
   const response = await axios.post(
-    `${AI_SERVICE_URL}/investigate`,
+    `${getAiServiceUrl()}/investigate`,
     { crn, mode: 'api' },
-    { timeout: 150_000 }  // 2.5 min — LangGraph pipelines can be slow
+    { timeout: 150_000 } // 2.5 min — LangGraph pipelines can be slow
   );
   return response.data;
 }
@@ -35,7 +37,7 @@ export async function runInvestigationByDocument(fileBuffer, filename) {
   });
 
   const response = await axios.post(
-    `${AI_SERVICE_URL}/investigate/document`,
+    `${getAiServiceUrl()}/investigate/document`,
     form,
     {
       headers: form.getHeaders(),
@@ -47,7 +49,6 @@ export async function runInvestigationByDocument(fileBuffer, filename) {
 
 /**
  * Forwards a HITL (Human-in-the-Loop) resume request to the Python service.
- * Stub — returns 501 until the LangGraph HITL node is merged.
  *
  * @param {string} threadId   - LangGraph thread ID to resume
  * @param {Buffer} fileBuffer - Trust deed / additional PDF
@@ -61,7 +62,7 @@ export async function resumeInvestigation(threadId, fileBuffer, filename) {
   });
 
   const response = await axios.post(
-    `${AI_SERVICE_URL}/approve/${threadId}`,
+    `${getAiServiceUrl()}/approve/${threadId}`,
     form,
     {
       headers: form.getHeaders(),

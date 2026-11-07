@@ -1,5 +1,27 @@
 const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
+/**
+ * Normalizes a UK Company Registration Number (CRN):
+ * - Strips spaces and hyphens
+ * - Converts to uppercase
+ * - Pads purely numeric CRNs (1–7 digits) with leading zeros to 8 digits
+ */
+export function normalizeCrn(rawCrn = '') {
+  const cleaned = String(rawCrn).replace(/[\s-]+/g, '').toUpperCase();
+  if (/^\d{1,7}$/.test(cleaned)) {
+    return cleaned.padStart(8, '0');
+  }
+  return cleaned;
+}
+
+/**
+ * Validates normalized UK CRNs:
+ * - 8 digits (e.g. 09446231)
+ * - 2 letters + 6 digits or 2 letters + 4 digits + 2 letters (e.g. SC123456, OC301234)
+ * - 1 letter + 7 digits (e.g. R0123456)
+ */
+export const CRN_REGEX = /^(\d{8}|[A-Z]{2}[A-Z0-9]{6}|[A-Z]\d{7})$/i;
+
 function getAuthHeaders(contentType = 'application/json') {
   const token = localStorage.getItem('unshell_token');
   const headers = {};
@@ -12,23 +34,39 @@ function getAuthHeaders(contentType = 'application/json') {
   return headers;
 }
 
+async function extractErrorMessage(res, fallbackMsg) {
+  try {
+    const body = await res.json();
+    const raw =
+      body?.error?.error ??
+      body?.detail?.error ??
+      body?.detail ??
+      body?.error ??
+      null;
+    if (raw && typeof raw === 'string' && raw.length < 400) {
+      return raw;
+    }
+    if (raw && typeof raw === 'object') {
+      return JSON.stringify(raw).slice(0, 300);
+    }
+  } catch {
+    // Ignore JSON parse error and use fallback
+  }
+  return fallbackMsg;
+}
+
 export async function investigateByAPI(crn) {
+  const cleanCrn = normalizeCrn(crn);
   const res = await fetch(`${BASE}/investigate`, {
     method: 'POST',
     headers: getAuthHeaders('application/json'),
-    body: JSON.stringify({ mode: 'api', crn }),
+    body: JSON.stringify({ mode: 'api', crn: cleanCrn }),
   });
   if (!res.ok) {
-    let detail = `Investigation failed (HTTP ${res.status}). Please try again.`;
-    try {
-      const body = await res.json();
-      const raw = body?.detail?.error ?? body?.detail ?? body?.error ?? null;
-      if (raw && typeof raw === 'string' && raw.length < 300) {
-        detail = raw;
-      }
-    } catch (e) {
-      void e;
-    }
+    const detail = await extractErrorMessage(
+      res,
+      `Investigation failed (HTTP ${res.status}). Please check that the backend and AI service are running.`
+    );
     throw new Error(detail);
   }
   return res.json();
@@ -39,7 +77,6 @@ export async function investigateByDocument(pdfFile) {
   form.append('file', pdfFile);
   form.append('mode', 'document');
 
-  // No Content-Type header so browser sets boundary multipart automatically
   const headers = getAuthHeaders(null);
 
   const res = await fetch(`${BASE}/investigate/document`, {
@@ -48,11 +85,10 @@ export async function investigateByDocument(pdfFile) {
     body: form,
   });
   if (!res.ok) {
-    let detail = `Document investigation failed (HTTP ${res.status}).`;
-    try {
-      const b = await res.json();
-      if (b.error) detail = b.error;
-    } catch {}
+    const detail = await extractErrorMessage(
+      res,
+      `Document investigation failed (HTTP ${res.status}).`
+    );
     throw new Error(detail);
   }
   return res.json();
@@ -69,12 +105,19 @@ export async function resumeInvestigation(threadId, pdfFile) {
     headers,
     body: form,
   });
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  if (!res.ok) {
+    const detail = await extractErrorMessage(
+      res,
+      `Resume investigation failed (HTTP ${res.status}).`
+    );
+    throw new Error(detail);
+  }
   return res.json();
 }
 
 export async function healthCheck() {
   const res = await fetch(`${BASE}/health`);
+  if (!res.ok) throw new Error(`Health check error: ${res.status}`);
   return res.json();
 }
 
