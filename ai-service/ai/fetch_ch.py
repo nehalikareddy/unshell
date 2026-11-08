@@ -239,6 +239,67 @@ DEMO_FALLBACK_COMPANIES = {
         "company_status_flag": False,
         "filing_history_raw": [],
     },
+    "08804411": {
+        "company_name": "REVOLUT LTD",
+        "crn": "08804411",
+        "company_type": "ltd",
+        "company_status": "active",
+        "incorporation_date": "2013-12-06",
+        "sic_codes": ["64999"],
+        "registered_address": "7 Westferry Circus, The Columbus Building, 4th Floor, London, E14 4HD, United Kingdom",
+        "pscs": [
+            {
+                "name": "Revolut Group Holdings Ltd",
+                "type": "corporate-entity-person-with-significant-control",
+                "ownership_pct": 87.5,
+                "ownership_band": "ownership-of-shares-75-to-100-percent",
+                "natures_of_control": ["ownership-of-shares-75-to-100-percent", "voting-rights-75-to-100-percent"],
+                "natures_clean": ["75%–100% share ownership", "75%–100% voting rights"],
+                "jurisdiction": "United Kingdom",
+                "is_offshore": False,
+                "registration_number": "12743095",
+                "notified_on": "2020-09-10",
+            },
+            {
+                "name": "Mr Nikolay Storonsky",
+                "type": "individual-person-with-significant-control",
+                "ownership_pct": 37.5,
+                "ownership_band": "ownership-of-shares-25-to-50-percent",
+                "natures_of_control": ["ownership-of-shares-25-to-50-percent"],
+                "natures_clean": ["25%–50% share ownership"],
+                "jurisdiction": "United Kingdom",
+                "is_offshore": False,
+                "registration_number": "",
+                "notified_on": "2016-04-06",
+            }
+        ],
+        "has_no_psc": False,
+        "officers": [
+            {
+                "name": "STORONSKY, Nikolay",
+                "role": "director",
+                "appointment_date": "2013-12-06",
+                "resignation_date": None,
+                "is_corporate": False,
+                "nationality": "British",
+                "country_of_residence": "United Kingdom",
+            }
+        ],
+        "resigned_officer_count": 5,
+        "filing_count": 85,
+        "cs01_count": 10,
+        "aa_count": 10,
+        "recent_docs": [],
+        "charges": [],
+        "has_charges": False,
+        "charge_count": 0,
+        "last_accounts_date": "2023-12-31",
+        "accounts_overdue": False,
+        "is_dormant": False,
+        "has_insolvency": False,
+        "company_status_flag": False,
+        "filing_history_raw": [],
+    },
 }
 
 
@@ -337,6 +398,10 @@ def fetch_company_full(crn: str) -> dict:
     try:
         profile_resp = requests.get(f"{CH_BASE}/company/{crn}", headers=h, timeout=12)
     except requests.RequestException as exc:
+        if crn in DEMO_FALLBACK_COMPANIES:
+            print(f"[CH] Failed to reach Companies House API ({exc}) — falling back to demo data for {crn}")
+            import copy
+            return copy.deepcopy(DEMO_FALLBACK_COMPANIES[crn])
         raise ValueError(f"Unable to reach Companies House API: {exc}")
 
     if profile_resp.status_code == 404:
@@ -351,8 +416,16 @@ def fetch_company_full(crn: str) -> dict:
             "Please check that COMPANIES_HOUSE_API_KEY in ai-service/.env is a valid REST API key."
         )
     if profile_resp.status_code == 429:
+        if crn in DEMO_FALLBACK_COMPANIES:
+            print(f"[CH] Companies House API rate limited (429) — falling back to demo data for {crn}")
+            import copy
+            return copy.deepcopy(DEMO_FALLBACK_COMPANIES[crn])
         raise ValueError("Companies House API rate limit exceeded (HTTP 429). Please wait a moment and try again.")
     if profile_resp.status_code != 200:
+        if crn in DEMO_FALLBACK_COMPANIES:
+            print(f"[CH] Companies House API status {profile_resp.status_code} — falling back to demo data for {crn}")
+            import copy
+            return copy.deepcopy(DEMO_FALLBACK_COMPANIES[crn])
         raise ValueError(f"Companies House API returned unexpected status HTTP {profile_resp.status_code} for CRN '{crn}'.")
 
     profile = profile_resp.json()

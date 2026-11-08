@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { investigateByAPI, investigateByDocument, normalizeCrn } from './api/client';
 import DualEntryGateway from './components/DualEntryGateway';
 import LoadingScreen from './components/LoadingScreen';
@@ -12,6 +12,14 @@ function AppContent() {
   const [investigationData, setData]        = useState(null);
   const [error, setError]                   = useState(null);
   const [lastCrn, setLastCrn]               = useState('');
+
+  // Proactive background ping on mount to wake up Render free tier before user clicks
+  useEffect(() => {
+    const rawBase = import.meta.env.VITE_API_BASE_URL || 'https://unshellbackend.onrender.com/api';
+    const cleanBase = rawBase.replace(/\/api\/?$/, '');
+    fetch(`${cleanBase}/health`).catch(() => {});
+    fetch(`${cleanBase}/api/health`).catch(() => {});
+  }, []);
 
   async function handleInvestigateAPI(crn) {
     const cleanCrn = normalizeCrn(crn);

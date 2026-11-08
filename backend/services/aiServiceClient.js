@@ -6,10 +6,10 @@ function getAiServiceUrl() {
 }
 
 /**
- * Executes a POST request with retry and exponential backoff for 429/502/503.
- * Prevents cold-start and Cloudflare/Render rate-limiting from failing investigations.
+ * Executes a POST request with retry and exponential backoff for 429/502/503/504 and network resets.
+ * Covers Render free-tier cold starts (which take 45–60s) and absorbs edge rate-limits.
  */
-async function postWithRetry(url, data, config = {}, maxRetries = 3, initialDelay = 1500) {
+async function postWithRetry(url, data, config = {}, maxRetries = 12, initialDelay = 2500) {
   let delay = initialDelay;
   const mergedHeaders = {
     'User-Agent': 'unshell-backend/1.0',
@@ -24,11 +24,19 @@ async function postWithRetry(url, data, config = {}, maxRetries = 3, initialDela
       });
     } catch (err) {
       const status = err.response?.status;
-      const isTransient = status === 429 || status === 502 || status === 503;
+      const isTransient =
+        status === 429 ||
+        status === 502 ||
+        status === 503 ||
+        status === 504 ||
+        err.code === 'ECONNRESET' ||
+        err.code === 'ECONNREFUSED' ||
+        err.code === 'ETIMEDOUT';
+
       if (isTransient && attempt < maxRetries) {
-        console.warn(`[AI Client] ${url} returned ${status}. Retrying in ${delay}ms (attempt ${attempt}/${maxRetries})...`);
+        console.warn(`[AI Client] ${url} reported ${status || err.code} (container starting up / throttled). Retrying in ${Math.round(delay)}ms (attempt ${attempt}/${maxRetries})...`);
         await new Promise((resolve) => setTimeout(resolve, delay));
-        delay *= 1.5;
+        delay = Math.min(delay * 1.35, 7500);
         continue;
       }
       throw err;

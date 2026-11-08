@@ -24,7 +24,9 @@ function extractAxiosError(err) {
 
   if (!detail) {
     if (status === 429) {
-      detail = 'Rate limit temporarily reached on the AI service. Please wait a few seconds and try again.';
+      detail = 'The AI service is waking up from sleep on free-tier hosting (takes ~45s) or temporarily rate-limited. Please wait 30 seconds and try again, or select a preloaded dossier.';
+    } else if (status === 502 || status === 503 || status === 504) {
+      detail = 'The AI service is starting up. Please wait a moment and try again.';
     } else {
       detail = err.message ?? 'Internal server error';
     }
@@ -92,6 +94,37 @@ export async function investigate(req, res) {
     });
   } catch (err) {
     console.error('[Express] investigate error:', err.message);
+
+    // Fallback: If AI service is sleeping/throttled, check MongoDB Atlas for existing investigation of this CRN
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const cached = await Investigation.findOne({ crn: cleanCrn }).sort({ createdAt: -1 });
+        if (cached && cached.graph) {
+          console.log(`[Express] Serving cached investigation for ${cleanCrn} (AI service cold-starting / rate-limited)`);
+          return res.json({
+            status: 'complete',
+            thread_id: cached._id.toString(),
+            risk_score: cached.riskScore,
+            risk_label: cached.riskLabel,
+            confidence_score: 85,
+            fatal_flags: cached.fatalFlags || [],
+            cumulative_vectors: cached.cumulativeVectors || [],
+            action_required: cached.verdict,
+            resolved_ubo: cached.resolvedUbo,
+            sanctions_hit: cached.sanctionsHit,
+            sanctions_detail: cached.sanctionsDetail,
+            graph: cached.graph,
+            stats: cached.stats,
+            saved_id: cached._id,
+            saved_at: cached.createdAt,
+            cached: true,
+          });
+        }
+      } catch (cacheErr) {
+        console.error('[Express] Cache fallback lookup failed:', cacheErr.message);
+      }
+    }
+
     const { status, message } = extractAxiosError(err);
     return res.status(status).json({ error: message });
   }

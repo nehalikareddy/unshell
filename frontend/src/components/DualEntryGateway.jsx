@@ -235,6 +235,24 @@ export default function DualEntryGateway({ onInvestigateAPI, onInvestigateDocume
           <div style={{ color: 'var(--accent-red)', fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700 }}>
             ALERT // {displayError}
           </div>
+          {crn && (
+            <button
+              onClick={() => go(crn)}
+              style={{
+                background: 'rgba(235, 94, 85, 0.15)',
+                border: '1px solid var(--accent-red)',
+                color: 'var(--accent-red)',
+                fontSize: 10,
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 700,
+                padding: '4px 8px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              RETRY
+            </button>
+          )}
           <button
             onClick={handleDismissError}
             style={{

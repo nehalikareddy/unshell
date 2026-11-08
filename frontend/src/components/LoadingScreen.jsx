@@ -6,7 +6,9 @@ const STEPS = [
   { label: 'Building corporate ownership graph traversal tree...', duration: 1500 },
   { label: 'Executing Tarjan cycle detection for circular ownership loops...', duration: 1400 },
   { label: 'Screening all nodes against OFAC SDN & EU sanctions databases...', duration: 1600 },
-  { label: 'Synthesizing multi-vector risk scores & generating evidence audit trail...', duration: 1800 },
+  { label: 'Synthesizing multi-vector risk scores & generating evidence audit trail...', duration: 2500 },
+  { label: 'Verifying AI inference cluster (absorbing free-tier cold-start wake-up)...', duration: 4500 },
+  { label: 'Finalizing entity graph visualization and risk dossier...', duration: 3500 },
 ];
 
 export default function LoadingScreen({ crn }) {

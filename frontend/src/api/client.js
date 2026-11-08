@@ -57,19 +57,38 @@ async function extractErrorMessage(res, fallbackMsg) {
 
 export async function investigateByAPI(crn) {
   const cleanCrn = normalizeCrn(crn);
-  const res = await fetch(`${BASE}/investigate`, {
-    method: 'POST',
-    headers: getAuthHeaders('application/json'),
-    body: JSON.stringify({ mode: 'api', crn: cleanCrn }),
-  });
-  if (!res.ok) {
-    const detail = await extractErrorMessage(
-      res,
-      `Investigation failed (HTTP ${res.status}). Please check that the backend and AI service are running.`
-    );
-    throw new Error(detail);
+  const maxAttempts = 2;
+  let lastErr = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await fetch(`${BASE}/investigate`, {
+        method: 'POST',
+        headers: getAuthHeaders('application/json'),
+        body: JSON.stringify({ mode: 'api', crn: cleanCrn }),
+      });
+
+      if (!res.ok) {
+        const isColdStart = res.status === 429 || res.status === 502 || res.status === 503 || res.status === 504;
+        if (isColdStart && attempt < maxAttempts) {
+          // Service waking up on free-tier Render; pause 4 seconds and retry once silently
+          await new Promise((r) => setTimeout(r, 4000));
+          continue;
+        }
+        const detail = await extractErrorMessage(
+          res,
+          `Investigation failed (HTTP ${res.status}). The service may be waking up—please try again in a moment.`
+        );
+        throw new Error(detail);
+      }
+
+      return await res.json();
+    } catch (err) {
+      lastErr = err;
+      if (attempt >= maxAttempts) throw lastErr;
+    }
   }
-  return res.json();
+  throw lastErr;
 }
 
 export async function investigateByDocument(pdfFile) {
