@@ -460,4 +460,47 @@ html, body, #root {
     border-radius: 16px 16px 0 0 !important;
     overflow-y: auto !important;
   }
+
+  .risk-scoreboard-bottom {
+    height: 52px !important;
+    min-height: 52px !important;
+    max-height: 52px !important;
+    padding: 0 10px !important;
+    gap: 10px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .risk-scoreboard-bottom::-webkit-scrollbar {
+    display: none;
+  }
+
+  .risk-divider {
+    height: 22px !important;
+  }
+}
+
+/* ── Telemetry Bottom Bar (Investigation Down Bar) ───────────────────────── */
+.risk-scoreboard-bottom {
+  height: 60px;
+  min-height: 60px;
+  max-height: 60px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border-top: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 18px;
+  z-index: 30;
+  width: 100%;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+}
+
+.risk-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--border-hairline);
+  flex-shrink: 0;
 }
